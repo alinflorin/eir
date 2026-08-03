@@ -128,7 +128,7 @@ function UserMenu({ auth, themePreference, onThemePreferenceChange }: UserMenuPr
           <MenuItem
             icon={<SignOutRegular />}
             onClick={() => {
-              void auth.removeUser()
+              void auth.signoutSilent()
               navigate('/')
             }}
           >
