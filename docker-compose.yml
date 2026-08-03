@@ -1,0 +1,22 @@
+services:
+  # mongodb:
+  #   image: mongo:8.3.7-noble
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - /data/db
+
+  rabbitmq:
+    image: rabbitmq:4.3.4-alpine
+    ports:
+      - "5672:5672"
+    volumes:
+      - /var/lib/rabbitmq
+
+  dex:
+    image: dexidp/dex:v2.45.1-alpine
+    command: ["dex", "serve", "/etc/dex/config.yml"]
+    ports:
+      - "5556:5556"
+    volumes:
+      - ./dex-config.yml:/etc/dex/config.yml:ro
