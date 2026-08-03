@@ -76,7 +76,7 @@ function App() {
   }
 
   const handleLogoutClick = () => {
-    void auth.signoutSilent()
+    void auth.removeUser()
     navigate('/')
   }
 

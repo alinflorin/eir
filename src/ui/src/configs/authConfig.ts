@@ -10,4 +10,5 @@ export const oidcConfig: UserManagerSettings = {
   scope: 'openid profile email offline_access audience:server:client_id:rabbitmq',
   automaticSilentRenew: true,
   userStore: new WebStorageStateStore({ store: window.localStorage }),
+  post_logout_redirect_uri: `${origin}/`
 }
