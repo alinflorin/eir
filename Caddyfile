@@ -1,0 +1,9 @@
+dex.localhost {
+	tls /certs/dex.localhost.pem /certs/dex.localhost-key.pem
+	reverse_proxy dex:5556
+}
+
+rabbitmq.localhost {
+	tls /certs/rabbitmq.localhost.pem /certs/rabbitmq.localhost-key.pem
+	reverse_proxy /ws rabbitmq:15675
+}

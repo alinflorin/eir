@@ -91,3 +91,7 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,linux,macos,git
+
+### Local dev TLS certs ###
+/certs/
+.env

@@ -10,17 +10,33 @@ services:
     image: rabbitmq:4.3.4-alpine
     ports:
       - "5672:5672"
+      - "5671:5671"
     volumes:
       - /var/lib/rabbitmq
       - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
       - ./rabbitmq-enabled-plugins:/etc/rabbitmq/enabled_plugins:ro
+      - ./certs:/certs:ro
     depends_on:
       - dex
+      - caddy
 
   dex:
     image: dexidp/dex:v2.45.1-alpine
     command: ["dex", "serve", "/etc/dex/config.yml"]
-    ports:
-      - "5556:5556"
     volumes:
       - ./dex-config.yml:/etc/dex/config.yml:ro
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./certs:/certs:ro
+    networks:
+      default:
+        aliases:
+          - dex.localhost
+    depends_on:
+      - dex

@@ -1,1 +1,5 @@
 *.sh eol=lf
+Caddyfile eol=lf
+dex-config.yml eol=lf
+rabbitmq.conf eol=lf
+rabbitmq-enabled-plugins eol=lf
