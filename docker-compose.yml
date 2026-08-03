@@ -1,4 +1,13 @@
 services:
+  ui:
+    image: node:24-alpine
+    working_dir: /app
+    command: sh -c "npm run dev -- --host 0.0.0.0"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./src/ui:/app
+
   # mongodb:
   #   image: mongo:8.3.7-noble
   #   ports:
