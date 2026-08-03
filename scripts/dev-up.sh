@@ -9,4 +9,4 @@ if ! command -v docker &>/dev/null; then
 fi
 
 docker compose up -d
-docker compose logs -f ui
+docker compose logs -f
