@@ -1,3 +1,8 @@
+eir.localhost {
+	tls /certs/eir.localhost.pem /certs/eir.localhost-key.pem
+	reverse_proxy ui:3000
+}
+
 dex.localhost {
 	tls /certs/dex.localhost.pem /certs/dex.localhost-key.pem
 	reverse_proxy dex:5556

@@ -49,3 +49,4 @@ services:
           - dex.localhost
     depends_on:
       - dex
+      - ui

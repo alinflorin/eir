@@ -12,6 +12,7 @@ fi
 mkcert -install
 
 mkdir -p certs
+mkcert -cert-file certs/eir.localhost.pem -key-file certs/eir.localhost-key.pem eir.localhost
 mkcert -cert-file certs/dex.localhost.pem -key-file certs/dex.localhost-key.pem dex.localhost
 mkcert -cert-file certs/rabbitmq.localhost.pem -key-file certs/rabbitmq.localhost-key.pem rabbitmq.localhost
 cp "$(mkcert -CAROOT)/rootCA.pem" certs/rootCA.pem
