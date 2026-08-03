@@ -1,10 +1,12 @@
 import { Title1, Body1 } from '@fluentui/react-components'
+import { useTranslation } from 'react-i18next'
 
 function About() {
+  const { t } = useTranslation()
   return (
     <>
-      <Title1>About</Title1><br />
-      <Body1 as="p">Learn more about this project.</Body1>
+      <Title1>{t('pages.about.title')}</Title1><br />
+      <Body1 as="p">{t('pages.about.body')}</Body1>
     </>
   )
 }

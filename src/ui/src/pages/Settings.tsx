@@ -1,10 +1,12 @@
 import { Title1, Body1 } from '@fluentui/react-components'
+import { useTranslation } from 'react-i18next'
 
 function Settings() {
+  const { t } = useTranslation()
   return (
     <>
-      <Title1>Settings</Title1><br />
-      <Body1 as="p">Manage your preferences.</Body1>
+      <Title1>{t('pages.settings.title')}</Title1><br />
+      <Body1 as="p">{t('pages.settings.body')}</Body1>
     </>
   )
 }

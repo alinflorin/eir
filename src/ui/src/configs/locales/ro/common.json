@@ -1,0 +1,47 @@
+{
+  "theme": {
+    "label": "Temă",
+    "system": "Sistem",
+    "light": "Luminoasă",
+    "dark": "Întunecată"
+  },
+  "language": {
+    "label": "Limbă",
+    "en": "English",
+    "ro": "Română"
+  },
+  "account": {
+    "login": "Autentificare",
+    "logout": "Deconectare"
+  },
+  "nav": {
+    "home": "Acasă",
+    "contact": "Contact",
+    "about": "Despre",
+    "settings": "Setări"
+  },
+  "app": {
+    "signingIn": "Te autentificăm…",
+    "signingOut": "Te deconectăm…",
+    "loading": "Se încarcă…",
+    "authError": "Eroare de autentificare: {{message}}"
+  },
+  "pages": {
+    "home": {
+      "title": "Acasă",
+      "body": "Bine ai venit în aplicație."
+    },
+    "contact": {
+      "title": "Contact",
+      "body": "Ia legătura cu noi."
+    },
+    "about": {
+      "title": "Despre",
+      "body": "Află mai multe despre acest proiect."
+    },
+    "settings": {
+      "title": "Setări",
+      "body": "Gestionează-ți preferințele."
+    }
+  }
+}

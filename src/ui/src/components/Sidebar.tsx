@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router'
+import { useTranslation } from 'react-i18next'
 import { InlineDrawer, OverlayDrawer, DrawerBody, makeStyles, tokens } from '@fluentui/react-components'
 import {
   Home24Regular,
@@ -12,10 +13,10 @@ import {
 } from '@fluentui/react-icons'
 
 const NAV_ITEMS = [
-  { to: '/', label: 'Home', icon: Home24Regular, activeIcon: Home24Filled },
-  { to: '/contact', label: 'Contact', icon: Mail24Regular, activeIcon: Mail24Filled },
-  { to: '/about', label: 'About', icon: Info24Regular, activeIcon: Info24Filled },
-  { to: '/settings', label: 'Settings', icon: Settings24Regular, activeIcon: Settings24Filled },
+  { to: '/', labelKey: 'nav.home', icon: Home24Regular, activeIcon: Home24Filled },
+  { to: '/contact', labelKey: 'nav.contact', icon: Mail24Regular, activeIcon: Mail24Filled },
+  { to: '/about', labelKey: 'nav.about', icon: Info24Regular, activeIcon: Info24Filled },
+  { to: '/settings', labelKey: 'nav.settings', icon: Settings24Regular, activeIcon: Settings24Filled },
 ]
 
 const useStyles = makeStyles({
@@ -60,10 +61,11 @@ const useStyles = makeStyles({
 function NavLinks() {
   const styles = useStyles()
   const location = useLocation()
+  const { t } = useTranslation()
 
   return (
     <nav className={styles.nav}>
-      {NAV_ITEMS.map(({ to, label, icon: Icon, activeIcon: ActiveIcon }) => {
+      {NAV_ITEMS.map(({ to, labelKey, icon: Icon, activeIcon: ActiveIcon }) => {
         const isActive = location.pathname === to
         return (
           <Link
@@ -72,7 +74,7 @@ function NavLinks() {
             className={`${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
           >
             {isActive ? <ActiveIcon /> : <Icon />}
-            {label}
+            {t(labelKey)}
           </Link>
         )
       })}

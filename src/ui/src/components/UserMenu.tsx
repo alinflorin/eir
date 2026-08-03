@@ -1,4 +1,5 @@
 import type { AuthContextProps } from 'react-oidc-context'
+import { useTranslation } from 'react-i18next'
 import {
   Avatar,
   Menu,
@@ -18,8 +19,10 @@ import {
   WeatherMoonRegular,
   WeatherSunnyRegular,
   DesktopRegular,
+  TranslateRegular,
 } from '@fluentui/react-icons'
 import type { ThemePreference } from '../hooks/useThemePreference'
+import { supportedLanguages, type SupportedLanguage } from '../configs/i18nConfig'
 
 type UserMenuProps = {
   auth: AuthContextProps
@@ -28,6 +31,8 @@ type UserMenuProps = {
 }
 
 function UserMenu({ auth, themePreference, onThemePreferenceChange }: UserMenuProps) {
+  const { t, i18n } = useTranslation()
+
   const handleThemeCheckedValueChange: MenuProps['onCheckedValueChange'] = (_e, { checkedItems }) => {
     const next = checkedItems[0] as ThemePreference | undefined
     if (next) {
@@ -35,16 +40,40 @@ function UserMenu({ auth, themePreference, onThemePreferenceChange }: UserMenuPr
     }
   }
 
+  const handleLanguageCheckedValueChange: MenuProps['onCheckedValueChange'] = (_e, { checkedItems }) => {
+    const next = checkedItems[0] as SupportedLanguage | undefined
+    if (next) {
+      void i18n.changeLanguage(next)
+    }
+  }
+
   const themeSubmenu = (
     <Menu checkedValues={{ theme: [themePreference] }} onCheckedValueChange={handleThemeCheckedValueChange}>
       <MenuTrigger disableButtonEnhancement>
-        <MenuItem icon={<DarkThemeRegular />}>Theme</MenuItem>
+        <MenuItem icon={<DarkThemeRegular />}>{t('theme.label')}</MenuItem>
       </MenuTrigger>
       <MenuPopover>
         <MenuList>
-          <MenuItemRadio name="theme" value="system" icon={<DesktopRegular />}>System</MenuItemRadio>
-          <MenuItemRadio name="theme" value="light" icon={<WeatherSunnyRegular />}>Light</MenuItemRadio>
-          <MenuItemRadio name="theme" value="dark" icon={<WeatherMoonRegular />}>Dark</MenuItemRadio>
+          <MenuItemRadio name="theme" value="system" icon={<DesktopRegular />}>{t('theme.system')}</MenuItemRadio>
+          <MenuItemRadio name="theme" value="light" icon={<WeatherSunnyRegular />}>{t('theme.light')}</MenuItemRadio>
+          <MenuItemRadio name="theme" value="dark" icon={<WeatherMoonRegular />}>{t('theme.dark')}</MenuItemRadio>
+        </MenuList>
+      </MenuPopover>
+    </Menu>
+  )
+
+  const languageSubmenu = (
+    <Menu checkedValues={{ language: [i18n.resolvedLanguage ?? 'en'] }} onCheckedValueChange={handleLanguageCheckedValueChange}>
+      <MenuTrigger disableButtonEnhancement>
+        <MenuItem icon={<TranslateRegular />}>{t('language.label')}</MenuItem>
+      </MenuTrigger>
+      <MenuPopover>
+        <MenuList>
+          {supportedLanguages.map((lng) => (
+            <MenuItemRadio key={lng} name="language" value={lng}>
+              {t(`language.${lng}`)}
+            </MenuItemRadio>
+          ))}
         </MenuList>
       </MenuPopover>
     </Menu>
@@ -63,8 +92,9 @@ function UserMenu({ auth, themePreference, onThemePreferenceChange }: UserMenuPr
         <MenuPopover>
           <MenuList>
             {themeSubmenu}
+            {languageSubmenu}
             <MenuItem icon={<PersonArrowRightRegular />} onClick={() => void auth.signinRedirect()}>
-              Login
+              {t('account.login')}
             </MenuItem>
           </MenuList>
         </MenuPopover>
@@ -88,11 +118,12 @@ function UserMenu({ auth, themePreference, onThemePreferenceChange }: UserMenuPr
             </MenuItem>
           )}
           {themeSubmenu}
+          {languageSubmenu}
           <MenuItem
             icon={<SignOutRegular />}
             onClick={() => void auth.signoutRedirect()}
           >
-            Logout
+            {t('account.logout')}
           </MenuItem>
         </MenuList>
       </MenuPopover>

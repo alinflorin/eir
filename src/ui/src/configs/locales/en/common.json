@@ -1,0 +1,47 @@
+{
+  "theme": {
+    "label": "Theme",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "ro": "Română"
+  },
+  "account": {
+    "login": "Login",
+    "logout": "Logout"
+  },
+  "nav": {
+    "home": "Home",
+    "contact": "Contact",
+    "about": "About",
+    "settings": "Settings"
+  },
+  "app": {
+    "signingIn": "Signing you in…",
+    "signingOut": "Signing you out…",
+    "loading": "Loading…",
+    "authError": "Authentication error: {{message}}"
+  },
+  "pages": {
+    "home": {
+      "title": "Home",
+      "body": "Welcome to the app."
+    },
+    "contact": {
+      "title": "Contact",
+      "body": "Get in touch with us."
+    },
+    "about": {
+      "title": "About",
+      "body": "Learn more about this project."
+    },
+    "settings": {
+      "title": "Settings",
+      "body": "Manage your preferences."
+    }
+  }
+}

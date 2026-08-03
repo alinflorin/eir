@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Route, Routes, useLocation, useNavigate } from 'react-router'
 import { useAuth } from 'react-oidc-context'
+import { useTranslation } from 'react-i18next'
 import { FluentProvider, Spinner, Text, makeStyles, tokens, webDarkTheme, webLightTheme } from '@fluentui/react-components'
 import { useIsMobile } from './hooks/useIsMobile'
 import { useThemePreference } from './hooks/useThemePreference'
@@ -41,6 +42,7 @@ const useStyles = makeStyles({
 
 function App() {
   const styles = useStyles()
+  const { t } = useTranslation()
   const isMobile = useIsMobile()
   const { preference, setPreference, isDark } = useThemePreference()
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -64,7 +66,7 @@ function App() {
       <FluentProvider theme={theme}>
         <div className={styles.centered}>
           <Spinner />
-          <Text>{auth.activeNavigator === 'signinSilent' ? 'Signing you in…' : 'Signing you out…'}</Text>
+          <Text>{auth.activeNavigator === 'signinSilent' ? t('app.signingIn') : t('app.signingOut')}</Text>
         </div>
       </FluentProvider>
     )
@@ -74,7 +76,7 @@ function App() {
     return (
       <FluentProvider theme={theme}>
         <div className={styles.centered}>
-          <Spinner label="Loading…" />
+          <Spinner label={t('app.loading')} />
         </div>
       </FluentProvider>
     )
@@ -84,7 +86,7 @@ function App() {
     return (
       <FluentProvider theme={theme}>
         <div className={styles.centered}>
-          <Text>Authentication error: {auth.error.message}</Text>
+          <Text>{t('app.authError', { message: auth.error.message })}</Text>
         </div>
       </FluentProvider>
     )
