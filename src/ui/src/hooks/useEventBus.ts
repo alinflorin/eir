@@ -33,6 +33,7 @@ function setSharedClient(client: MqttClient | null) {
 export interface EventBus {
   connect: (accessToken: string, username: string) => void
   disconnect: () => void
+  publish: (topic: string, message: string | Buffer) => void
   subscribe: (topic: string, onMessage: (topic: string, payload: Buffer) => void) => () => void
 }
 
@@ -48,7 +49,7 @@ export function useEventBus(): EventBus {
 
   const connect = useCallback((accessToken: string, username: string) => {
     sharedClient?.end(true)
-
+    console.log(username);
     const mqttClient = mqtt.connect(BROKER_URL, {
       username,
       password: accessToken,
@@ -62,6 +63,13 @@ export function useEventBus(): EventBus {
     sharedClient?.end(true)
     setSharedClient(null)
   }, [])
+
+  const publish = useCallback(
+    (topic: string, message: string | Buffer) => {
+      client?.publish(topic, message)
+    },
+    [client],
+  )
 
   const subscribe = useCallback(
     (topic: string, onMessage: (topic: string, payload: Buffer) => void) => {
@@ -86,5 +94,5 @@ export function useEventBus(): EventBus {
     [client],
   )
 
-  return { connect, disconnect, subscribe }
+  return { connect, disconnect, publish, subscribe }
 }

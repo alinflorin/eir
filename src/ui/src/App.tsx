@@ -65,7 +65,7 @@ function App() {
 
   useEffect(() => {
     if (auth.isAuthenticated && auth.user?.access_token) {
-      connect(auth.user.access_token, auth.user.profile.sub)
+      connect(auth.user.access_token, auth.user.profile.email!)
     } else {
       disconnect()
     }
