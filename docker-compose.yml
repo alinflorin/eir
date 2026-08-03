@@ -12,6 +12,10 @@ services:
       - "5672:5672"
     volumes:
       - /var/lib/rabbitmq
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+    depends_on:
+      - dex
 
   dex:
     image: dexidp/dex:v2.45.1-alpine

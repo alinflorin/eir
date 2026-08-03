@@ -13,6 +13,14 @@ staticClients:
     redirectURIs:
       - http://127.0.0.1:3000/oauth/callback
 
+  # Audience-only client: no redirect URIs, exists so tokens can be scoped
+  # to it via `audience:server:client_id:rabbitmq` requested by a trusted peer.
+  - id: rabbitmq
+    name: rabbitmq
+    public: true
+    trustedPeers:
+      - eir
+
 enablePasswordDB: true
 
 staticPasswords:
