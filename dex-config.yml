@@ -1,4 +1,4 @@
-issuer: https://dex.localhost/dex
+issuer: https://dex.localhost
 
 storage:
   type: memory
@@ -11,7 +11,7 @@ staticClients:
     name: eir
     public: true
     redirectURIs:
-      - http://127.0.0.1:3000/oauth/callback
+      - https://eir.localhost/oauth/callback
 
   # Audience-only client: no redirect URIs, exists so tokens can be scoped
   # to it via `audience:server:client_id:rabbitmq` requested by a trusted peer.
@@ -27,5 +27,4 @@ staticPasswords:
   - email: admin@example.com
     username: admin
     userID: 08a8684b-db88-4b73-90a9-3cd1661f5466
-    # bcrypt hash of "password"
-    hash: "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W"
+    hash: "$DEX_ADMIN_PASSWORD_HASH"

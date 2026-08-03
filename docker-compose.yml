@@ -2,11 +2,12 @@ services:
   ui:
     image: node:24-alpine
     working_dir: /app
-    command: sh -c "npm run dev -- --host 0.0.0.0"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     ports:
       - "3000:3000"
     volumes:
       - ./src/ui:/app
+      - ui_node_modules:/app/node_modules
 
   # mongodb:
   #   image: mongo:8.3.7-noble
@@ -32,6 +33,8 @@ services:
   dex:
     image: dexidp/dex:v2.45.1-alpine
     command: ["dex", "serve", "/etc/dex/config.yml"]
+    environment:
+      - DEX_ADMIN_PASSWORD_HASH=${DEX_ADMIN_PASSWORD_HASH}
     volumes:
       - ./dex-config.yml:/etc/dex/config.yml:ro
 
@@ -50,3 +53,6 @@ services:
     depends_on:
       - dex
       - ui
+
+volumes:
+  ui_node_modules:
