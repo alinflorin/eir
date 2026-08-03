@@ -26,7 +26,7 @@ staticClients:
     name: ui
     public: true
     redirectURIs:
-      - https://eir.localhost/oauth/callback
+      - https://eir.localhost/
 
   # Audience-only client: no redirect URIs, exists so tokens can be scoped
   # to it via `audience:server:client_id:rabbitmq` requested by a trusted peer.

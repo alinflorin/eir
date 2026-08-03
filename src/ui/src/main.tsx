@@ -7,7 +7,7 @@ import { oidcConfig } from "./configs/authConfig";
 import "./configs/i18nConfig";
 
 const onSigninCallback: AuthProviderProps["onSigninCallback"] = () => {
-  window.history.replaceState({}, document.title, window.location.pathname);
+  window.history.replaceState({}, document.title, "/");
 };
 
 createRoot(document.getElementById("root")!).render(
