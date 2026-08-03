@@ -49,7 +49,6 @@ export function useEventBus(): EventBus {
 
   const connect = useCallback((accessToken: string, username: string) => {
     sharedClient?.end(true)
-    console.log(username);
     const mqttClient = mqtt.connect(BROKER_URL, {
       username,
       password: accessToken,
