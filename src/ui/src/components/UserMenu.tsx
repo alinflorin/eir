@@ -1,5 +1,5 @@
 import type { AuthContextProps } from 'react-oidc-context'
-import { useLocation } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import {
   Avatar,
@@ -34,6 +34,7 @@ type UserMenuProps = {
 function UserMenu({ auth, themePreference, onThemePreferenceChange }: UserMenuProps) {
   const { t, i18n } = useTranslation()
   const location = useLocation()
+  const navigate = useNavigate()
 
   const handleThemeCheckedValueChange: MenuProps['onCheckedValueChange'] = (_e, { checkedItems }) => {
     const next = checkedItems[0] as ThemePreference | undefined
@@ -126,7 +127,10 @@ function UserMenu({ auth, themePreference, onThemePreferenceChange }: UserMenuPr
           {languageSubmenu}
           <MenuItem
             icon={<SignOutRegular />}
-            onClick={() => void auth.signoutRedirect()}
+            onClick={() => {
+              void auth.removeUser()
+              navigate('/')
+            }}
           >
             {t('account.logout')}
           </MenuItem>

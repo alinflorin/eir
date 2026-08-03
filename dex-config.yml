@@ -8,6 +8,19 @@ web:
   allowedOrigins:
     - https://eir.localhost
 
+oauth2:
+  skipApprovalScreen: true
+  alwaysShowLoginScreen: false
+
+# Dex ties access token lifetime to idTokens, so 15m here covers both.
+expiry:
+  idTokens: 15m
+  refreshTokens:
+    validIfNotUsedFor: 720h
+    absoluteLifetime: 2160h
+    reuseInterval: 30s
+    disableRotation: false
+
 staticClients:
   - id: ui
     name: ui
