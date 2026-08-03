@@ -1,0 +1,18 @@
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router";
+import { AuthProvider, type AuthProviderProps } from "react-oidc-context";
+import "./index.css";
+import App from "./App.tsx";
+import { oidcConfig } from "./configs/authConfig";
+
+const onSigninCallback: AuthProviderProps["onSigninCallback"] = () => {
+  window.history.replaceState({}, document.title, window.location.pathname);
+};
+
+createRoot(document.getElementById("root")!).render(
+  <AuthProvider {...oidcConfig} onSigninCallback={onSigninCallback}>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </AuthProvider>,
+);
