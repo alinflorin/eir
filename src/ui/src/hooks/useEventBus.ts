@@ -33,7 +33,7 @@ function setSharedClient(client: MqttClient | null) {
 export interface EventBus {
   connect: (accessToken: string, username: string) => void
   disconnect: () => void
-  publish: (topic: string, message: string | Buffer) => void
+  publish: <T extends object>(payload: T) => void
   subscribe: (topic: string, onMessage: (topic: string, payload: Buffer) => void) => () => void
 }
 
@@ -64,8 +64,10 @@ export function useEventBus(): EventBus {
   }, [])
 
   const publish = useCallback(
-    (topic: string, message: string | Buffer) => {
-      client?.publish(topic, message)
+    <T extends object>(payload: T) => {
+      const topic = payload.constructor.name
+      console.log(topic)
+      client?.publish(topic, JSON.stringify(payload))
     },
     [client],
   )
