@@ -61,7 +61,8 @@ function App() {
     if (returnTo && returnTo !== location.pathname + location.search) {
       navigate(returnTo, { replace: true })
     }
-  }, [auth.isAuthenticated, auth.user, location, navigate])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth.isAuthenticated])
 
   useEffect(() => {
     if (auth.isAuthenticated && auth.user?.access_token) {
