@@ -1,6 +1,5 @@
 import { Hamburger, Text, makeStyles, tokens } from '@fluentui/react-components'
 import { Sparkle24Filled } from '@fluentui/react-icons'
-import type { AuthContextProps } from 'react-oidc-context'
 import UserMenu from './UserMenu'
 import type { ThemePreference } from '../hooks/useThemePreference'
 
@@ -34,12 +33,28 @@ const useStyles = makeStyles({
 type HeaderProps = {
   isMobile: boolean
   onToggleDrawer: () => void
-  auth: AuthContextProps
+  isAuthLoading: boolean
+  isAuthenticated: boolean
+  name?: string
+  email?: string
   themePreference: ThemePreference
   onThemePreferenceChange: (next: ThemePreference) => void
+  onLoginClick: () => void
+  onLogoutClick: () => void
 }
 
-function Header({ isMobile, onToggleDrawer, auth, themePreference, onThemePreferenceChange }: HeaderProps) {
+function Header({
+  isMobile,
+  onToggleDrawer,
+  isAuthLoading,
+  isAuthenticated,
+  name,
+  email,
+  themePreference,
+  onThemePreferenceChange,
+  onLoginClick,
+  onLogoutClick,
+}: HeaderProps) {
   const styles = useStyles()
 
   return (
@@ -50,7 +65,16 @@ function Header({ isMobile, onToggleDrawer, auth, themePreference, onThemePrefer
         <Text className={styles.logoText}>Eir</Text>
       </div>
       <div className={styles.spacer} />
-      <UserMenu auth={auth} themePreference={themePreference} onThemePreferenceChange={onThemePreferenceChange} />
+      <UserMenu
+        isLoading={isAuthLoading}
+        isAuthenticated={isAuthenticated}
+        name={name}
+        email={email}
+        themePreference={themePreference}
+        onThemePreferenceChange={onThemePreferenceChange}
+        onLoginClick={onLoginClick}
+        onLogoutClick={onLogoutClick}
+      />
     </header>
   )
 }

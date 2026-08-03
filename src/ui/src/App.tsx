@@ -71,6 +71,15 @@ function App() {
     }
   }, [auth.isAuthenticated, auth.user, connect, disconnect])
 
+  const handleLoginClick = () => {
+    void auth.signinRedirect({ state: { returnTo: location.pathname + location.search } })
+  }
+
+  const handleLogoutClick = () => {
+    void auth.signoutSilent()
+    navigate('/')
+  }
+
   if (auth.activeNavigator === 'signinSilent' || auth.activeNavigator === 'signoutRedirect') {
     return (
       <FluentProvider theme={theme}>
@@ -108,9 +117,14 @@ function App() {
         <Header
           isMobile={isMobile}
           onToggleDrawer={() => setDrawerOpen((open) => !open)}
-          auth={auth}
+          isAuthLoading={auth.isLoading}
+          isAuthenticated={auth.isAuthenticated}
+          name={auth.user?.profile.name}
+          email={auth.user?.profile.email}
           themePreference={preference}
           onThemePreferenceChange={setPreference}
+          onLoginClick={handleLoginClick}
+          onLogoutClick={handleLogoutClick}
         />
 
         <div className={styles.body}>

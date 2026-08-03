@@ -1,5 +1,3 @@
-import type { AuthContextProps } from 'react-oidc-context'
-import { useLocation, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import {
   Avatar,
@@ -26,15 +24,27 @@ import type { ThemePreference } from '../hooks/useThemePreference'
 import { supportedLanguages, type SupportedLanguage } from '../configs/i18nConfig'
 
 type UserMenuProps = {
-  auth: AuthContextProps
+  isLoading: boolean
+  isAuthenticated: boolean
+  name?: string
+  email?: string
   themePreference: ThemePreference
   onThemePreferenceChange: (next: ThemePreference) => void
+  onLoginClick: () => void
+  onLogoutClick: () => void
 }
 
-function UserMenu({ auth, themePreference, onThemePreferenceChange }: UserMenuProps) {
+function UserMenu({
+  isLoading,
+  isAuthenticated,
+  name,
+  email,
+  themePreference,
+  onThemePreferenceChange,
+  onLoginClick,
+  onLogoutClick,
+}: UserMenuProps) {
   const { t, i18n } = useTranslation()
-  const location = useLocation()
-  const navigate = useNavigate()
 
   const handleThemeCheckedValueChange: MenuProps['onCheckedValueChange'] = (_e, { checkedItems }) => {
     const next = checkedItems[0] as ThemePreference | undefined
@@ -82,11 +92,11 @@ function UserMenu({ auth, themePreference, onThemePreferenceChange }: UserMenuPr
     </Menu>
   )
 
-  if (auth.isLoading) {
+  if (isLoading) {
     return <Spinner size="tiny" />
   }
 
-  if (!auth.isAuthenticated) {
+  if (!isAuthenticated) {
     return (
       <Menu>
         <MenuTrigger disableButtonEnhancement>
@@ -96,10 +106,7 @@ function UserMenu({ auth, themePreference, onThemePreferenceChange }: UserMenuPr
           <MenuList>
             {themeSubmenu}
             {languageSubmenu}
-            <MenuItem
-              icon={<PersonArrowRightRegular />}
-              onClick={() => void auth.signinRedirect({ state: { returnTo: location.pathname + location.search } })}
-            >
+            <MenuItem icon={<PersonArrowRightRegular />} onClick={onLoginClick}>
               {t('account.login')}
             </MenuItem>
           </MenuList>
@@ -108,30 +115,23 @@ function UserMenu({ auth, themePreference, onThemePreferenceChange }: UserMenuPr
     )
   }
 
-  const name = auth.user?.profile.name ?? auth.user?.profile.email
-  const email = auth.user?.profile.email
+  const displayName = name ?? email
 
   return (
     <Menu>
       <MenuTrigger disableButtonEnhancement>
-        <Avatar name={name} color="colorful" aria-label={name ?? 'Account'} />
+        <Avatar name={displayName} color="colorful" aria-label={displayName ?? 'Account'} />
       </MenuTrigger>
       <MenuPopover>
         <MenuList>
-          {(name || email) && (
+          {displayName && (
             <MenuItem icon={<PersonCircleRegular />} disabled>
-              {name ?? email}
+              {displayName}
             </MenuItem>
           )}
           {themeSubmenu}
           {languageSubmenu}
-          <MenuItem
-            icon={<SignOutRegular />}
-            onClick={() => {
-              void auth.signoutSilent()
-              navigate('/')
-            }}
-          >
+          <MenuItem icon={<SignOutRegular />} onClick={onLogoutClick}>
             {t('account.logout')}
           </MenuItem>
         </MenuList>
