@@ -1,11 +1,12 @@
-import { useState } from 'react'
-import { Route, Routes } from 'react-router'
+import { useEffect, useState } from 'react'
+import { Route, Routes, useLocation, useNavigate } from 'react-router'
 import { useAuth } from 'react-oidc-context'
 import { FluentProvider, Spinner, Text, makeStyles, tokens, webDarkTheme, webLightTheme } from '@fluentui/react-components'
 import { useIsMobile } from './hooks/useIsMobile'
 import { useThemePreference } from './hooks/useThemePreference'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
+import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
 import Contact from './pages/Contact'
 import About from './pages/About'
@@ -26,7 +27,7 @@ const useStyles = makeStyles({
     flex: '1',
     minWidth: 0,
     overflow: 'auto',
-    padding: tokens.spacingHorizontalXXL,
+    padding: tokens.spacingHorizontalS,
   },
   centered: {
     display: 'flex',
@@ -44,7 +45,19 @@ function App() {
   const { preference, setPreference, isDark } = useThemePreference()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const auth = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
   const theme = isDark ? webDarkTheme : webLightTheme
+
+  useEffect(() => {
+    if (!auth.isAuthenticated || !auth.user?.state) {
+      return
+    }
+    const { returnTo } = auth.user.state as { returnTo?: string }
+    if (returnTo && returnTo !== location.pathname + location.search) {
+      navigate(returnTo, { replace: true })
+    }
+  }, [auth.isAuthenticated, auth.user, location, navigate])
 
   if (auth.activeNavigator === 'signinSilent' || auth.activeNavigator === 'signoutRedirect') {
     return (
@@ -96,7 +109,14 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/about" element={<About />} />
-              <Route path="/settings" element={<Settings />} />
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                }
+              />
             </Routes>
           </main>
         </div>

@@ -19,17 +19,29 @@ const NAV_ITEMS = [
 ]
 
 const useStyles = makeStyles({
+  drawer: {
+    width: '200px',
+  },
+  drawerBody: {
+    padding: tokens.spacingHorizontalXS,
+    '&:first-child': {
+      paddingTop: tokens.spacingHorizontalXS,
+    },
+    '&:last-child': {
+      paddingBottom: tokens.spacingHorizontalXS,
+    },
+  },
   nav: {
     display: 'flex',
     flexDirection: 'column',
     gap: tokens.spacingVerticalXS,
-    padding: tokens.spacingHorizontalS,
+    padding: tokens.spacingHorizontalXS,
   },
   navLink: {
     display: 'flex',
     alignItems: 'center',
     gap: tokens.spacingHorizontalS,
-    padding: `${tokens.spacingVerticalSNudge} ${tokens.spacingHorizontalM}`,
+    padding: `${tokens.spacingVerticalXS} ${tokens.spacingHorizontalS}`,
     borderRadius: tokens.borderRadiusMedium,
     color: tokens.colorNeutralForeground2,
     textDecorationLine: 'none',
@@ -75,14 +87,17 @@ type SidebarProps = {
 }
 
 function Sidebar({ isMobile, open, onOpenChange }: SidebarProps) {
+  const styles = useStyles()
+
   if (isMobile) {
     return (
       <OverlayDrawer
+        className={styles.drawer}
         open={open}
         onOpenChange={(_, data) => onOpenChange(data.open)}
         position="start"
       >
-        <DrawerBody>
+        <DrawerBody className={styles.drawerBody}>
           <NavLinks />
         </DrawerBody>
       </OverlayDrawer>
@@ -90,8 +105,8 @@ function Sidebar({ isMobile, open, onOpenChange }: SidebarProps) {
   }
 
   return (
-    <InlineDrawer open position="start">
-      <DrawerBody>
+    <InlineDrawer className={styles.drawer} open position="start">
+      <DrawerBody className={styles.drawerBody}>
         <NavLinks />
       </DrawerBody>
     </InlineDrawer>
