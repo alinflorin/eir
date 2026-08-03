@@ -1,4 +1,5 @@
 import type { AuthContextProps } from 'react-oidc-context'
+import { useLocation } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import {
   Avatar,
@@ -32,6 +33,7 @@ type UserMenuProps = {
 
 function UserMenu({ auth, themePreference, onThemePreferenceChange }: UserMenuProps) {
   const { t, i18n } = useTranslation()
+  const location = useLocation()
 
   const handleThemeCheckedValueChange: MenuProps['onCheckedValueChange'] = (_e, { checkedItems }) => {
     const next = checkedItems[0] as ThemePreference | undefined
@@ -93,7 +95,10 @@ function UserMenu({ auth, themePreference, onThemePreferenceChange }: UserMenuPr
           <MenuList>
             {themeSubmenu}
             {languageSubmenu}
-            <MenuItem icon={<PersonArrowRightRegular />} onClick={() => void auth.signinRedirect()}>
+            <MenuItem
+              icon={<PersonArrowRightRegular />}
+              onClick={() => void auth.signinRedirect({ state: { returnTo: location.pathname + location.search } })}
+            >
               {t('account.login')}
             </MenuItem>
           </MenuList>

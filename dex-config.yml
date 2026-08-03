@@ -7,8 +7,8 @@ web:
   http: 0.0.0.0:5556
 
 staticClients:
-  - id: eir
-    name: eir
+  - id: ui
+    name: ui
     public: true
     redirectURIs:
       - https://eir.localhost/oauth/callback
@@ -19,7 +19,7 @@ staticClients:
     name: rabbitmq
     public: true
     trustedPeers:
-      - eir
+      - ui
 
 enablePasswordDB: true
 
