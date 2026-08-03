@@ -26,13 +26,10 @@ services:
       - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
       - ./rabbitmq-enabled-plugins:/etc/rabbitmq/enabled_plugins:ro
       - ./certs:/certs:ro
-    depends_on:
-      - dex
-      - caddy
 
   dex:
     image: dexidp/dex:v2.45.1-alpine
-    command: ["dex", "serve", "/etc/dex/config.yml"]
+    command: ["sh", "-c", "sed \"s|\\$$DEX_ADMIN_PASSWORD_HASH|$$DEX_ADMIN_PASSWORD_HASH|\" /etc/dex/config.yml > /tmp/config.yml && dex serve /tmp/config.yml"]
     environment:
       - DEX_ADMIN_PASSWORD_HASH=${DEX_ADMIN_PASSWORD_HASH}
     volumes:
@@ -50,9 +47,8 @@ services:
       default:
         aliases:
           - dex.localhost
-    depends_on:
-      - dex
-      - ui
+          - eir.localhost
+          - rabbitmq.localhost
 
 volumes:
   ui_node_modules:
