@@ -17,4 +17,21 @@ mkcert -cert-file certs/dex.localhost.pem -key-file certs/dex.localhost-key.pem 
 mkcert -cert-file certs/rabbitmq.localhost.pem -key-file certs/rabbitmq.localhost-key.pem rabbitmq.localhost
 cp "$(mkcert -CAROOT)/rootCA.pem" certs/rootCA.pem
 
-echo "Done. Certs written to ./certs (gitignored, run this script on each machine)."
+echo "Certs written to ./certs (gitignored, run this script on each machine)."
+
+HOSTS="eir.localhost dex.localhost rabbitmq.localhost"
+MISSING=""
+for h in $HOSTS; do
+  if ! grep -qE "(^|[[:space:]])$h([[:space:]]|$)" /etc/hosts; then
+    MISSING="$MISSING $h"
+  fi
+done
+
+if [ -n "$MISSING" ]; then
+  echo "Adding to /etc/hosts (needs sudo):$MISSING"
+  sudo sh -c "printf '127.0.0.1\t%s\n' \"${MISSING# }\" >> /etc/hosts"
+else
+  echo "/etc/hosts already has entries for:$HOSTS"
+fi
+
+echo "Done."
