@@ -3,3 +3,4 @@ Caddyfile eol=lf
 dex-config.yml eol=lf
 rabbitmq.conf eol=lf
 rabbitmq-enabled-plugins eol=lf
+rabbitmq-definitions.json eol=lf
