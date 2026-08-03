@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { useAuth } from 'react-oidc-context'
+import { useCallback, useEffect, useState } from 'react'
 import mqtt, { type MqttClient } from 'mqtt'
 
 const { protocol, hostname } = window.location
@@ -23,48 +22,69 @@ function topicMatches(filter: string, topic: string): boolean {
   return filterLevels.length === topicLevels.length
 }
 
-export function useEventBus(topic?: string, onMessage?: (topic: string, payload: Buffer) => void): MqttClient | null {
-  const { isAuthenticated, user } = useAuth()
-  const [client, setClient] = useState<MqttClient | null>(null)
+let sharedClient: MqttClient | null = null
+const clientListeners = new Set<(client: MqttClient | null) => void>()
+
+function setSharedClient(client: MqttClient | null) {
+  sharedClient = client
+  clientListeners.forEach((listener) => listener(client))
+}
+
+export interface EventBus {
+  connect: (accessToken: string, username: string) => void
+  disconnect: () => void
+  subscribe: (topic: string, onMessage: (topic: string, payload: Buffer) => void) => () => void
+}
+
+export function useEventBus(): EventBus {
+  const [client, setClient] = useState<MqttClient | null>(sharedClient)
 
   useEffect(() => {
-    if (!isAuthenticated || !user?.access_token) {
-      return
+    clientListeners.add(setClient)
+    return () => {
+      clientListeners.delete(setClient)
     }
+  }, [])
+
+  const connect = useCallback((accessToken: string, username: string) => {
+    sharedClient?.end(true)
 
     const mqttClient = mqtt.connect(BROKER_URL, {
-      username: user.profile.sub,
-      password: user.access_token,
+      username,
+      password: accessToken,
       protocolVersion: 5,
     })
 
-    mqttClient.on('connect', () => setClient(mqttClient))
+    mqttClient.on('connect', () => setSharedClient(mqttClient))
+  }, [])
 
-    return () => {
-      mqttClient.end(true)
-      setClient(null)
-    }
-  }, [isAuthenticated, user])
+  const disconnect = useCallback(() => {
+    sharedClient?.end(true)
+    setSharedClient(null)
+  }, [])
 
-  useEffect(() => {
-    if (!client || !topic || !onMessage) {
-      return
-    }
-
-    const handleMessage = (receivedTopic: string, payload: Buffer) => {
-      if (topicMatches(topic, receivedTopic)) {
-        onMessage(receivedTopic, payload)
+  const subscribe = useCallback(
+    (topic: string, onMessage: (topic: string, payload: Buffer) => void) => {
+      if (!client) {
+        return () => {}
       }
-    }
 
-    client.subscribe(topic)
-    client.on('message', handleMessage)
+      const handleMessage = (receivedTopic: string, payload: Buffer) => {
+        if (topicMatches(topic, receivedTopic)) {
+          onMessage(receivedTopic, payload)
+        }
+      }
 
-    return () => {
-      client.unsubscribe(topic)
-      client.off('message', handleMessage)
-    }
-  }, [client, topic, onMessage])
+      client.subscribe(topic)
+      client.on('message', handleMessage)
 
-  return client
+      return () => {
+        client.unsubscribe(topic)
+        client.off('message', handleMessage)
+      }
+    },
+    [client],
+  )
+
+  return { connect, disconnect, subscribe }
 }

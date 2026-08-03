@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { FluentProvider, Spinner, Text, makeStyles, tokens, webDarkTheme, webLightTheme } from '@fluentui/react-components'
 import { useIsMobile } from './hooks/useIsMobile'
 import { useThemePreference } from './hooks/useThemePreference'
+import { useEventBus } from './hooks/useEventBus'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -50,6 +51,7 @@ function App() {
   const navigate = useNavigate()
   const location = useLocation()
   const theme = isDark ? webDarkTheme : webLightTheme
+  const { connect, disconnect } = useEventBus()
 
   useEffect(() => {
     if (!auth.isAuthenticated || !auth.user?.state) {
@@ -60,6 +62,14 @@ function App() {
       navigate(returnTo, { replace: true })
     }
   }, [auth.isAuthenticated, auth.user, location, navigate])
+
+  useEffect(() => {
+    if (auth.isAuthenticated && auth.user?.access_token) {
+      connect(auth.user.access_token, auth.user.profile.sub)
+    } else {
+      disconnect()
+    }
+  }, [auth.isAuthenticated, auth.user, connect, disconnect])
 
   if (auth.activeNavigator === 'signinSilent' || auth.activeNavigator === 'signoutRedirect') {
     return (
