@@ -56,7 +56,10 @@ async function fetchAccessToken(): Promise<CachedToken> {
     grant_type: 'client_credentials',
     client_id: CLIENT_ID,
     client_secret: CLIENT_SECRET,
-    scope: 'openid profile email audience:server:client_id:rabbitmq',
+    // Both audiences are required: 'rabbitmq' satisfies rabbitmq.conf's
+    // resource_server_id check (needed just to authenticate at all), while
+    // 'rabbitmq-service' is what triggers the broader scope alias.
+    scope: 'openid profile email audience:server:client_id:rabbitmq audience:server:client_id:rabbitmq-service',
   })
 
   const response = await fetch(TOKEN_URL, {

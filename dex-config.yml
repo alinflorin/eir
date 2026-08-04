@@ -50,6 +50,15 @@ staticClients:
       - ui
       - invoicing
 
+  # Separate audience-only client for backend services only (not ui), so
+  # rabbitmq.conf can grant them a broader scope alias than end users get.
+  # Add future microservices to trustedPeers as they're introduced.
+  - id: rabbitmq-service
+    name: rabbitmq-service
+    public: true
+    trustedPeers:
+      - invoicing
+
 enablePasswordDB: true
 
 staticPasswords:
