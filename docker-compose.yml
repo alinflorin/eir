@@ -2,26 +2,31 @@ services:
   ui:
     image: node:24-alpine
     working_dir: /app
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    # The "domain" workspace package is a real dependency now (resolved via
+    # npm workspaces), not a source file vite can transpile on the fly, so it
+    # needs building before the dev server starts. watch:shared keeps
+    # rebuilding it in the background as its sources change.
+    command: sh -c "npm install && npm run build:shared && (npm run watch:shared &) && npm run dev --workspace=ui -- --host 0.0.0.0"
     ports:
       - "3000:3000"
     depends_on:
       - rabbitmq
     volumes:
-      - ./src/ui:/app
-      - ./src/domain:/domain
+      - .:/app
       - ui_node_modules:/app/node_modules
   invoicing:
     image: node:24-alpine
     working_dir: /app
-    command: sh -c "npm install && npm run dev"
+    # See the ui service's comment: "domain" and "service-common" are real
+    # workspace dependencies of invoicing and need to be built up front, then
+    # kept rebuilding in the background for live-reload during dev.
+    command: sh -c "npm install && npm run build:shared && (npm run watch:shared &) && npm run dev --workspace=invoicing"
     environment:
       - CLIENT_SECRET=${INVOICING_CLIENT_SECRET}
     depends_on:
       - rabbitmq
     volumes:
-      - ./src/invoicing:/app
-      - ./src/domain:/domain
+      - .:/app
       - invoicing_node_modules:/app/node_modules
   # mongodb:
   #   image: mongo:8.3.7-noble

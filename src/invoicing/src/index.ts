@@ -1,7 +1,7 @@
-import { CreateInvoiceRequested } from '../../domain/create-invoice-requested.js'
-import { InvoiceCreated } from '../../domain/invoice-created.js'
-import { configure } from './config.js'
-import { onConnect, startRabbitMQ, consumeAny, publish } from './eventBus.js'
+import { CreateInvoiceRequested } from 'domain/create-invoice-requested.js'
+import { InvoiceCreated } from 'domain/invoice-created.js'
+import { configure } from 'service-common/config.js'
+import { onConnect, startRabbitMQ, consumeAny, publish } from 'service-common/eventBus.js'
 
 configure('invoicing')
 
