@@ -108,17 +108,21 @@ function decodeNameClaim(accessToken: string): string {
 }
 
 /**
- * Publishes a message under the current user's topic namespace, keyed by
- * the payload's class name — identical scheme to useEventBus's publish.
+ * Publishes a message under a user's topic namespace, keyed by the
+ * payload's class name — identical scheme to useEventBus's publish.
+ * Defaults to the current (service account's) username; pass
+ * targetUsername to publish into a different user's namespace instead
+ * (e.g. a service replying to the user who made a request).
  * Routing keys use '.' natively (rabbitmq_mqtt translates '/' <-> '.' at
  * the MQTT boundary), so this reaches MQTT subscribers on `${username}/${ClassName}`.
  */
-export function publish<T extends object>(payload: T): void {
-  if (!channel || !username) {
+export function publish<T extends object>(payload: T, targetUsername?: string): void {
+  const target = targetUsername ?? username
+  if (!channel || !target) {
     console.warn('Cannot publish: not connected to rabbitmq')
     return
   }
-  const routingKey = `${username}.${payload.constructor.name}`
+  const routingKey = `${target}.${payload.constructor.name}`
   channel.publish(EXCHANGE, routingKey, Buffer.from(JSON.stringify(payload)))
 }
 
