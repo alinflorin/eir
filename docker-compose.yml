@@ -64,3 +64,4 @@ services:
 volumes:
   ui_node_modules:
   dex_data:
+  invoicing_node_modules:
