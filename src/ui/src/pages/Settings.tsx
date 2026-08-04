@@ -2,8 +2,8 @@ import { Title1, Body1, Button } from '@fluentui/react-components'
 import { useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useEventBus } from '../hooks/useEventBus'
-import { InvoiceCreated } from '../../../domain/invoice-created'
-import { CreateInvoiceRequested } from '../../../domain/create-invoice-requested'
+import { InvoiceCreated } from 'domain/invoice-created.js'
+import { CreateInvoiceRequested } from 'domain/create-invoice-requested.js'
 
 function Settings() {
   const { t } = useTranslation()
