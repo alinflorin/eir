@@ -1,16 +1,25 @@
 import { Title1, Body1, Button } from '@fluentui/react-components'
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useEventBus } from '../hooks/useEventBus'
 import { InvoiceCreated } from '../../../domain/invoice-created'
 
 function Settings() {
   const { t } = useTranslation()
-  const {publish} = useEventBus();
+  const {publish, subscribe} = useEventBus();
 
   const test = useCallback(async () => {
     publish(new InvoiceCreated('test'));
   }, [publish]);
+
+  useEffect(() => {
+    const unsub = subscribe(InvoiceCreated, i => {
+      console.log(3, i);
+    });
+    return () => {
+      unsub();
+    }
+  }, [subscribe]);
 
   return (
     <>
