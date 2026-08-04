@@ -1,9 +1,7 @@
 issuer: https://dex.localhost
 
 storage:
-  type: sqlite3
-  config:
-    file: /var/dex/dex.db
+  type: memory
 
 web:
   http: 0.0.0.0:5556

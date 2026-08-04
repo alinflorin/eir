@@ -54,7 +54,6 @@ services:
       - INVOICING_CLIENT_SECRET=${INVOICING_CLIENT_SECRET}
     volumes:
       - ./dex-config.yml:/etc/dex/config.yml:ro
-      - dex_data:/var/dex
 
   caddy:
     image: caddy:2-alpine
@@ -73,5 +72,4 @@ services:
 
 volumes:
   ui_node_modules:
-  dex_data:
   invoicing_node_modules:
