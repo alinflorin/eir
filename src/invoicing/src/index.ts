@@ -1,8 +1,7 @@
-import { getAccessToken } from './auth.js'
+import { startRabbitMQ } from './mq.js'
 
 console.log('invoicing service starting')
 
-const token = await getAccessToken()
-console.log(`acquired access token from dex (${token.length} chars)`)
-console.log(token);
+startRabbitMQ()
+
 setInterval(() => { console.log('invoicing live')}, 1000);

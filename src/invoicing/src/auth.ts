@@ -2,6 +2,9 @@ const TOKEN_URL = process.env.DEX_TOKEN_URL ?? 'http://dex:5556/token'
 const CLIENT_ID = 'invoicing'
 const CLIENT_SECRET = process.env.INVOICING_CLIENT_SECRET
 
+// Refresh this many seconds before actual expiry, to cover request latency.
+const EXPIRY_MARGIN_SECONDS = 30
+
 interface TokenResponse {
   access_token: string
   token_type: string
@@ -9,11 +12,42 @@ interface TokenResponse {
   scope?: string
 }
 
+interface CachedToken {
+  accessToken: string
+  expiresAt: number
+}
+
+let cached: CachedToken | undefined
+let inFlight: Promise<CachedToken> | undefined
+
 /**
- * Acquires an access token from dex using the client_credentials grant,
- * authenticating as the "invoicing" static client.
+ * Returns a cached access token from dex, re-authenticating as the
+ * "invoicing" static client (client_credentials grant) once it's expired
+ * or about to. There's no refresh token in this flow — dex rejects
+ * offline_access for client_credentials — so renewal just means repeating
+ * the original request with the client secret.
  */
 export async function getAccessToken(): Promise<string> {
+  return (await getToken()).accessToken
+}
+
+/**
+ * Same as getAccessToken, but also returns the (margin-adjusted) expiry so
+ * callers holding a long-lived connection can proactively renew it.
+ */
+export async function getToken(): Promise<CachedToken> {
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached
+  }
+
+  // Coalesce concurrent callers into a single token request.
+  if (!inFlight) {
+    inFlight = fetchAccessToken().finally(() => { inFlight = undefined })
+  }
+  return inFlight
+}
+
+async function fetchAccessToken(): Promise<CachedToken> {
   if (!CLIENT_SECRET) {
     throw new Error('INVOICING_CLIENT_SECRET is not set')
   }
@@ -37,5 +71,9 @@ export async function getAccessToken(): Promise<string> {
   }
 
   const token = (await response.json()) as TokenResponse
-  return token.access_token
+  cached = {
+    accessToken: token.access_token,
+    expiresAt: Date.now() + (token.expires_in - EXPIRY_MARGIN_SECONDS) * 1000,
+  }
+  return cached
 }
