@@ -5,6 +5,8 @@ services:
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     ports:
       - "3000:3000"
+    depends_on:
+      - rabbitmq
     volumes:
       - ./src/ui:/app
       - ./src/domain:/domain
@@ -15,6 +17,8 @@ services:
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     environment:
       - INVOICING_CLIENT_SECRET=${INVOICING_CLIENT_SECRET}
+    depends_on:
+      - rabbitmq
     volumes:
       - ./src/invoicing:/app
       - ./src/domain:/domain
@@ -32,6 +36,9 @@ services:
       - "5672:5672"
       - "5671:5671"
       - "15672:15672"
+    depends_on:
+      - caddy
+      - dex
     volumes:
       - /var/lib/rabbitmq
       - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
@@ -40,7 +47,7 @@ services:
       - ./certs:/certs:ro
 
   dex:
-    image: dexidp/dex:v2.45.1-alpine
+    image: dexidp/dex:latest
     command: ["sh", "-c", "sed \"s|\\$$DEX_ADMIN_PASSWORD_HASH|$$DEX_ADMIN_PASSWORD_HASH|\" /etc/dex/config.yml > /tmp/config.yml && dex serve /tmp/config.yml"]
     environment:
       - DEX_ADMIN_PASSWORD_HASH=${DEX_ADMIN_PASSWORD_HASH}
