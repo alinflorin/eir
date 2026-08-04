@@ -23,7 +23,7 @@ oauth2:
     
 # Dex ties access token lifetime to idTokens, so 15m here covers both.
 expiry:
-  idTokens: 15m
+  idTokens: 24h
   refreshTokens:
     validIfNotUsedFor: 720h
     absoluteLifetime: 2160h
