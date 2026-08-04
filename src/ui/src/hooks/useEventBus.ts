@@ -63,7 +63,6 @@ export function useEventBus(): EventBus {
       username,
       password: accessToken,
       protocolVersion: 5,
-      clientId: username,
     })
 
     mqttClient.on('connect', () => {
@@ -97,9 +96,13 @@ export function useEventBus(): EventBus {
       }
 
       const topic = `${username}/${type.name}`
+      // The broker round-trips topics through an AMQP routing key ('/' -> '.' on subscribe,
+      // '.' -> '/' on delivery), so any dots already in the topic (e.g. in an email address)
+      // come back as extra '/' segments. Normalize the filter the same lossy way before matching.
+      const normalizedTopic = topic.replace(/\./g, '/')
 
       const handleMessage = (receivedTopic: string, payload: Buffer) => {
-        if (topicMatches(topic, receivedTopic)) {
+        if (topicMatches(normalizedTopic, receivedTopic)) {
           onMessage(JSON.parse(payload.toString()) as T)
         }
       }

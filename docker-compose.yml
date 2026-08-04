@@ -9,7 +9,14 @@ services:
       - ./src/ui:/app
       - ./src/domain:/domain
       - ui_node_modules:/app/node_modules
-
+  invoicing:
+    image: node:24-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    volumes:
+      - ./src/invoicing:/app
+      - ./src/domain:/domain
+      - invoicing_node_modules:/app/node_modules
   # mongodb:
   #   image: mongo:8.3.7-noble
   #   ports:
