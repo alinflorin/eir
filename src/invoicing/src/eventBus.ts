@@ -176,7 +176,7 @@ async function bind<T extends object>(
   // after a minute (x-message-ttl) so a queue with no consumer for a while
   // doesn't grow unbounded.
   const queue = routingKey
-  await ch.assertQueue(queue, { durable: true, arguments: { 'x-message-ttl': 60_000 } })
+  await ch.assertQueue(queue, { durable: true })
   await ch.bindQueue(queue, EXCHANGE, routingKey)
 
   const { consumerTag } = await ch.consume(queue, (msg) => {
