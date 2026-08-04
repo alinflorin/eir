@@ -74,9 +74,14 @@ function App() {
 
   useEffect(() => {
     return auth.events.addAccessTokenExpired(() => {
-      void auth.signinSilent()
+      // automaticSilentRenew already attempts a renewal ~60s before expiry;
+      // only step in here if that attempt is not still in flight, to avoid
+      // firing a second, concurrent signinSilent() with the same refresh token.
+      if (auth.activeNavigator !== 'signinSilent') {
+        void auth.signinSilent()
+      }
     })
-  }, [auth.events, auth.signinSilent])
+  }, [auth.events, auth.signinSilent, auth.activeNavigator])
 
   const handleLoginClick = () => {
     void auth.signinRedirect({ state: { returnTo: location.pathname + location.search } })
