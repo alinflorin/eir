@@ -13,6 +13,7 @@ web:
 oauth2:
   skipApprovalScreen: true
   alwaysShowLoginScreen: false
+  clientCredentialsEnabled: true
 
 # Dex ties access token lifetime to idTokens, so 15m here covers both.
 expiry:
