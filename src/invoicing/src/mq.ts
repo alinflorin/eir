@@ -20,6 +20,22 @@ let renewalTimer: NodeJS.Timeout | undefined
 let channel: Channel | undefined
 let username: string | undefined
 
+// Queue bindings live on the channel, which is torn down and replaced on
+// every reconnect — so consumers registered here are re-bound after each
+// (re)connect rather than just once at startup.
+const connectListeners = new Set<() => void>()
+
+/**
+ * Registers a callback to (re-)run every time a rabbitmq connection is
+ * established, including after reconnects. Use this to set up `consume`/
+ * `consumeAny` subscriptions, since they're bound to a channel that doesn't
+ * survive a reconnect.
+ */
+export function onConnect(listener: () => void): void {
+  connectListeners.add(listener)
+  if (channel) listener()
+}
+
 /**
  * Connects to rabbitmq using the "invoicing" access token as the SASL PLAIN
  * password, per the rabbitmq_auth_backend_oauth2 plugin (see rabbitmq.conf).
@@ -59,6 +75,7 @@ async function connect(): Promise<void> {
   reconnectDelay = INITIAL_RECONNECT_DELAY_MS
   username = decodeNameClaim(token.accessToken)
   channel = await connection.createChannel()
+  connectListeners.forEach((listener) => listener())
 
   connection.on('error', (err) => console.error('rabbitmq connection error', err))
   connection.on('close', () => {
@@ -115,19 +132,45 @@ export async function consume<T extends object>(
   type: new (...args: never[]) => T,
   onMessage: (payload: T) => void,
 ): Promise<() => void> {
-  if (!channel || !username) {
+  if (!username) {
+    console.warn('Cannot consume: not connected to rabbitmq')
+    return () => {}
+  }
+  return bind(`${username}.${type.name}`, (payload: T) => onMessage(payload))
+}
+
+/**
+ * Subscribes to messages of the given class published under *any* user's
+ * topic namespace (routing key `*.ClassName` — AMQP's topic-exchange '*'
+ * matches exactly one word, i.e. one username segment). Useful for a
+ * service like invoicing that reacts to requests from any user, rather
+ * than one scoped to its own service account's namespace.
+ */
+export async function consumeAny<T extends object>(
+  type: new (...args: never[]) => T,
+  onMessage: (payload: T, fromUsername: string) => void,
+): Promise<() => void> {
+  return bind(`*.${type.name}`, (payload: T, routingKey: string) => {
+    onMessage(payload, routingKey.slice(0, routingKey.lastIndexOf('.')))
+  })
+}
+
+async function bind<T extends object>(
+  routingKey: string,
+  onMessage: (payload: T, routingKey: string) => void,
+): Promise<() => void> {
+  if (!channel) {
     console.warn('Cannot consume: not connected to rabbitmq')
     return () => {}
   }
 
   const ch = channel
-  const routingKey = `${username}.${type.name}`
   const { queue } = await ch.assertQueue('', { exclusive: true, autoDelete: true })
   await ch.bindQueue(queue, EXCHANGE, routingKey)
 
   const { consumerTag } = await ch.consume(queue, (msg) => {
     if (!msg) return
-    onMessage(JSON.parse(msg.content.toString()) as T)
+    onMessage(JSON.parse(msg.content.toString()) as T, msg.fields.routingKey)
     ch.ack(msg)
   })
 
