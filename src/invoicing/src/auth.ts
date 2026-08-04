@@ -1,6 +1,4 @@
-const TOKEN_URL = process.env.DEX_TOKEN_URL ?? 'http://dex:5556/token'
-const CLIENT_ID = 'invoicing'
-const CLIENT_SECRET = process.env.INVOICING_CLIENT_SECRET
+import { getConfig } from './config.js'
 
 // Refresh this many seconds before actual expiry, to cover request latency.
 const EXPIRY_MARGIN_SECONDS = 30
@@ -21,8 +19,8 @@ let cached: CachedToken | undefined
 let inFlight: Promise<CachedToken> | undefined
 
 /**
- * Returns a cached access token from dex, re-authenticating as the
- * "invoicing" static client (client_credentials grant) once it's expired
+ * Returns a cached access token from dex, re-authenticating as this
+ * service's static client (client_credentials grant) once it's expired
  * or about to. There's no refresh token in this flow — dex rejects
  * offline_access for client_credentials — so renewal just means repeating
  * the original request with the client secret.
@@ -48,21 +46,22 @@ export async function getToken(): Promise<CachedToken> {
 }
 
 async function fetchAccessToken(): Promise<CachedToken> {
-  if (!CLIENT_SECRET) {
-    throw new Error('INVOICING_CLIENT_SECRET is not set')
+  const { serviceName, clientSecret, tokenUrl } = getConfig()
+  if (!clientSecret) {
+    throw new Error(`${serviceName.toUpperCase()}_CLIENT_SECRET is not set`)
   }
 
   const body = new URLSearchParams({
     grant_type: 'client_credentials',
-    client_id: CLIENT_ID,
-    client_secret: CLIENT_SECRET,
+    client_id: serviceName,
+    client_secret: clientSecret,
     // Both audiences are required: 'rabbitmq' satisfies rabbitmq.conf's
     // resource_server_id check (needed just to authenticate at all), while
     // 'rabbitmq-service' is what triggers the broader scope alias.
     scope: 'openid profile email audience:server:client_id:rabbitmq audience:server:client_id:rabbitmq-service',
   })
 
-  const response = await fetch(TOKEN_URL, {
+  const response = await fetch(tokenUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body,

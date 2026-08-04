@@ -14,9 +14,9 @@ services:
   invoicing:
     image: node:24-alpine
     working_dir: /app
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    command: sh -c "npm install && npm run dev"
     environment:
-      - INVOICING_CLIENT_SECRET=${INVOICING_CLIENT_SECRET}
+      - CLIENT_SECRET=${CLIENT_SECRET}
     depends_on:
       - rabbitmq
     volumes:
@@ -51,7 +51,7 @@ services:
     command: ["sh", "-c", "sed \"s|\\$$DEX_ADMIN_PASSWORD_HASH|$$DEX_ADMIN_PASSWORD_HASH|\" /etc/dex/config.yml > /tmp/config.yml && dex serve /tmp/config.yml"]
     environment:
       - DEX_ADMIN_PASSWORD_HASH=${DEX_ADMIN_PASSWORD_HASH}
-      - INVOICING_CLIENT_SECRET=${INVOICING_CLIENT_SECRET}
+      - CLIENT_SECRET=${CLIENT_SECRET}
     volumes:
       - ./dex-config.yml:/etc/dex/config.yml:ro
       - dex_data:/var/dex

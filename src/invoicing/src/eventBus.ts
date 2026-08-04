@@ -1,7 +1,6 @@
 import amqp, { type Channel, type ChannelModel } from 'amqplib'
 import { getToken } from './auth.js'
-
-const RABBITMQ_URL = process.env.RABBITMQ_URL ?? 'amqp://rabbitmq:5672'
+import { getConfig } from './config.js'
 
 // Same exchange the rabbitmq_mqtt plugin publishes/subscribes MQTT topics
 // through, so messages published here natively are delivered to (and
@@ -62,7 +61,7 @@ async function connect(): Promise<void> {
 
   let connection: ChannelModel
   try {
-    connection = await amqp.connect(RABBITMQ_URL, {
+    connection = await amqp.connect(getConfig().rabbitmqUrl, {
       credentials: amqp.credentials.plain('', token.accessToken),
     })
   } catch (err) {
