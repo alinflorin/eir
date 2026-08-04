@@ -22,6 +22,7 @@ export async function getAccessToken(): Promise<string> {
     grant_type: 'client_credentials',
     client_id: CLIENT_ID,
     client_secret: CLIENT_SECRET,
+    scope: 'openid profile email audience:server:client_id:rabbitmq',
   })
 
   const response = await fetch(TOKEN_URL, {

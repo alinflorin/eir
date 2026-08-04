@@ -14,7 +14,13 @@ oauth2:
   skipApprovalScreen: true
   alwaysShowLoginScreen: false
   clientCredentialsEnabled: true
-
+  grantTypes:
+    - "authorization_code"
+    - "client_credentials"
+    - "refresh_token"
+    - "implicit"
+    - "password"
+    
 # Dex ties access token lifetime to idTokens, so 15m here covers both.
 expiry:
   idTokens: 15m
