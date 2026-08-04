@@ -122,7 +122,9 @@ export function publish<T extends object>(payload: T, targetUsername?: string): 
     return
   }
   const routingKey = `${target}.${payload.constructor.name}`
-  channel.publish(EXCHANGE, routingKey, Buffer.from(JSON.stringify(payload)))
+  // persistent: true so messages sitting in the now-durable bound queues
+  // (see bind()) survive a broker restart during their 1-minute TTL.
+  channel.publish(EXCHANGE, routingKey, Buffer.from(JSON.stringify(payload)), { persistent: true })
 }
 
 /**
@@ -168,7 +170,13 @@ async function bind<T extends object>(
   }
 
   const ch = channel
-  const { queue } = await ch.assertQueue('', { exclusive: true, autoDelete: true })
+  // Named, durable, non-exclusive queue (rather than a private auto-delete
+  // one) so messages published while every consumer is offline are still
+  // stored in the broker instead of being dropped. Messages still expire
+  // after a minute (x-message-ttl) so a queue with no consumer for a while
+  // doesn't grow unbounded.
+  const queue = routingKey
+  await ch.assertQueue(queue, { durable: true, arguments: { 'x-message-ttl': 60_000 } })
   await ch.bindQueue(queue, EXCHANGE, routingKey)
 
   const { consumerTag } = await ch.consume(queue, (msg) => {
