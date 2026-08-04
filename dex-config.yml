@@ -8,7 +8,7 @@ storage:
 web:
   http: 0.0.0.0:5556
   allowedOrigins:
-    - https://eir.localhost
+    - '*'
 
 oauth2:
   skipApprovalScreen: true
