@@ -8,6 +8,4 @@ if ! command -v docker &>/dev/null; then
   exit 1
 fi
 
-docker compose up -d
-trap 'docker compose down' EXIT
-docker compose logs -f
+docker compose up
