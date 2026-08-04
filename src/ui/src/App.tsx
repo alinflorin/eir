@@ -72,6 +72,12 @@ function App() {
     }
   }, [auth.isAuthenticated, auth.user, connect, disconnect])
 
+  useEffect(() => {
+    return auth.events.addAccessTokenExpired(() => {
+      void auth.signinSilent()
+    })
+  }, [auth.events, auth.signinSilent])
+
   const handleLoginClick = () => {
     void auth.signinRedirect({ state: { returnTo: location.pathname + location.search } })
   }
