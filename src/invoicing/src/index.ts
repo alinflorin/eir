@@ -13,4 +13,4 @@ onConnect(() => {
 
 startRabbitMQ()
 
-setInterval(() => { console.log('invoicing live')}, 1000);
+console.log('invoicing service started')
