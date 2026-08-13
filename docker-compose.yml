@@ -47,7 +47,7 @@ services:
       - ./certs:/certs:ro
 
   dex:
-    image: dexidp/dex:latest
+    image: ghcr.io/dexidp/dex:master-alpine
     command: ["sh", "-c", "sed \"s|\\$$DEX_ADMIN_PASSWORD_HASH|$$DEX_ADMIN_PASSWORD_HASH|\" /etc/dex/config.yml > /tmp/config.yml && dex serve /tmp/config.yml"]
     environment:
       - DEX_ADMIN_PASSWORD_HASH=${DEX_ADMIN_PASSWORD_HASH}
