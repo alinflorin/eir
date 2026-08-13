@@ -49,6 +49,16 @@ staticClients:
     trustedPeers:
       - ui
       - invoicing
+      - rabbitmq-management
+
+  # Browser client for the RabbitMQ management UI's own OAuth login (the
+  # "Click here to log in" SSO button), separate from `ui` since the
+  # management plugin's callback path/origin differ from the app's.
+  - id: rabbitmq-management
+    name: rabbitmq-management
+    public: true
+    redirectURIs:
+      - http://localhost:15672/js/oidc-oauth/login-callback.html
 
   # Separate audience-only client for backend services only (not ui), so
   # rabbitmq.conf can grant them a broader scope alias than end users get.
@@ -58,6 +68,16 @@ staticClients:
     public: true
     trustedPeers:
       - invoicing
+
+  # Audience-only client whose scope_aliases entry (see rabbitmq.conf) grants
+  # the administrator tag. Dex won't accept arbitrary scopes like
+  # `rabbitmq.tag:administrator` directly, so it's requested indirectly via
+  # `audience:server:client_id:rabbitmq-admin` and expanded broker-side.
+  - id: rabbitmq-admin
+    name: rabbitmq-admin
+    public: true
+    trustedPeers:
+      - rabbitmq-management
 
 enablePasswordDB: true
 

@@ -136,12 +136,13 @@ export function publish<T extends object>(payload: T, targetUsername?: string): 
 export async function consume<T extends object>(
   type: new (...args: never[]) => T,
   onMessage: (payload: T) => void,
+  durable: boolean,
 ): Promise<() => void> {
   if (!username) {
     console.warn('Cannot consume: not connected to rabbitmq')
     return () => {}
   }
-  return bind(`${username}.${type.name}`, (payload: T) => onMessage(payload))
+  return bind(`${username}.${type.name}`, (payload: T) => onMessage(payload), durable)
 }
 
 /**
@@ -154,15 +155,17 @@ export async function consume<T extends object>(
 export async function consumeAny<T extends object>(
   type: new (...args: never[]) => T,
   onMessage: (payload: T, fromUsername: string) => void,
+  durable: boolean,
 ): Promise<() => void> {
   return bind(`*.${type.name}`, (payload: T, routingKey: string) => {
     onMessage(payload, routingKey.slice(0, routingKey.lastIndexOf('.')))
-  })
+  }, durable)
 }
 
 async function bind<T extends object>(
   routingKey: string,
   onMessage: (payload: T, routingKey: string) => void,
+  durable: boolean,
 ): Promise<() => void> {
   if (!channel) {
     console.warn('Cannot consume: not connected to rabbitmq')
@@ -170,13 +173,14 @@ async function bind<T extends object>(
   }
 
   const ch = channel
-  // Named, durable, non-exclusive queue (rather than a private auto-delete
-  // one) so messages published while every consumer is offline are still
-  // stored in the broker instead of being dropped. Messages still expire
-  // after a minute (x-message-ttl) so a queue with no consumer for a while
-  // doesn't grow unbounded.
+  // Named, non-exclusive queue (rather than a private auto-delete one) so
+  // messages published while every consumer is offline are still stored in
+  // the broker instead of being dropped. Messages still expire after a
+  // minute (x-message-ttl) so a queue with no consumer for a while doesn't
+  // grow unbounded. `durable` controls whether the queue itself survives a
+  // broker restart.
   const queue = routingKey
-  await ch.assertQueue(queue, { durable: true })
+  await ch.assertQueue(queue, { durable })
   await ch.bindQueue(queue, EXCHANGE, routingKey)
 
   const { consumerTag } = await ch.consume(queue, (msg) => {

@@ -40,7 +40,7 @@ function setSharedUsername(username: string | null) {
 export interface EventBus {
   connect: (accessToken: string, username: string) => void
   disconnect: () => void
-  publish: <T extends object>(payload: T, targetUsername?: string) => void
+  publish: <T extends object>(payload: T, targetUsername?: string, timeoutSeconds?: number) => void
   subscribe: <T extends object>(type: new (...args: never[]) => T, onMessage: (payload: T) => void) => () => void
 }
 
@@ -78,14 +78,16 @@ export function useEventBus(): EventBus {
   }, [])
 
   const publish = useCallback(
-    <T extends object>(payload: T, targetUsername?: string) => {
+    <T extends object>(payload: T, targetUsername?: string, timeoutSeconds = 30) => {
       const target = targetUsername ?? username
       if (!target) {
         console.warn('Cannot publish: no authenticated user')
         return
       }
       const topic = `${target}/${payload.constructor.name}`
-      client?.publish(topic, JSON.stringify(payload))
+      client?.publish(topic, JSON.stringify(payload), {
+        properties: { messageExpiryInterval: timeoutSeconds },
+      })
     },
     [client, username],
   )
