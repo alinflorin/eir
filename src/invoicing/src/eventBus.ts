@@ -136,12 +136,13 @@ export function publish<T extends object>(payload: T, targetUsername?: string): 
 export async function consume<T extends object>(
   type: new (...args: never[]) => T,
   onMessage: (payload: T) => void,
+  ttlMs?: number,
 ): Promise<() => void> {
   if (!username) {
     console.warn('Cannot consume: not connected to rabbitmq')
     return () => {}
   }
-  return bind(`${username}.${type.name}`, (payload: T) => onMessage(payload))
+  return bind(`${username}.${type.name}`, (payload: T) => onMessage(payload), ttlMs)
 }
 
 /**
@@ -154,15 +155,17 @@ export async function consume<T extends object>(
 export async function consumeAny<T extends object>(
   type: new (...args: never[]) => T,
   onMessage: (payload: T, fromUsername: string) => void,
+  ttlMs?: number,
 ): Promise<() => void> {
   return bind(`*.${type.name}`, (payload: T, routingKey: string) => {
     onMessage(payload, routingKey.slice(0, routingKey.lastIndexOf('.')))
-  })
+  }, ttlMs)
 }
 
 async function bind<T extends object>(
   routingKey: string,
   onMessage: (payload: T, routingKey: string) => void,
+  ttlMs?: number,
 ): Promise<() => void> {
   if (!channel) {
     console.warn('Cannot consume: not connected to rabbitmq')
@@ -172,11 +175,14 @@ async function bind<T extends object>(
   const ch = channel
   // Named, durable, non-exclusive queue (rather than a private auto-delete
   // one) so messages published while every consumer is offline are still
-  // stored in the broker instead of being dropped. Messages still expire
-  // after a minute (x-message-ttl) so a queue with no consumer for a while
-  // doesn't grow unbounded.
+  // stored in the broker instead of being dropped. Optionally capped with
+  // x-message-ttl so a queue with no consumer for a while doesn't grow
+  // unbounded.
   const queue = routingKey
-  await ch.assertQueue(queue, { durable: true })
+  await ch.assertQueue(queue, {
+    durable: true,
+    arguments: ttlMs === undefined ? {} : { 'x-message-ttl': ttlMs },
+  })
   await ch.bindQueue(queue, EXCHANGE, routingKey)
 
   const { consumerTag } = await ch.consume(queue, (msg) => {
