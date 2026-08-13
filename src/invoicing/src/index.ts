@@ -11,7 +11,7 @@ onConnect(() => {
   void consumeAny(CreateInvoiceRequested, (request, requestedBy) => {
     console.log(`invoice requested by ${requestedBy}`, request)
     publish(new InvoiceCreated('asdasdasda'), requestedBy);
-  }, false)
+  })
 })
 
 startRabbitMQ()
