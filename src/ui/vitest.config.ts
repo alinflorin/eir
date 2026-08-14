@@ -36,6 +36,13 @@ export default defineConfig({
   // test/dev transform pipeline minifies or renames, so names already come
   // through as-is (see Settings.test.tsx, which relies on this).
   test: {
+    // A realistic non-empty value for usePushNotifications, which reads
+    // this at module load to build the pushManager.subscribe() request.
+    // Must be valid base64url (it's fed through atob()), though it doesn't
+    // need to be a real key since pushManager.subscribe() is always mocked.
+    env: {
+      VITE_VAPID_PUBLIC_KEY: 'BPPP56XNzlka-g3GIcN27-yFQPRLDUvNcmKwj6AjhIn5wOYGbA8F3WU9TpPjhBcynYskLWfS1wcvPxTr6XBu6ys',
+    },
     setupFiles: ['./src/test-setup.ts'],
     browser: {
       enabled: true,

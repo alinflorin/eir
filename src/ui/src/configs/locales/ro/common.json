@@ -58,7 +58,15 @@
     },
     "settings": {
       "title": "Setări",
-      "body": "Gestionează-ți preferințele."
+      "body": "Gestionează-ți preferințele.",
+      "notifications": {
+        "title": "Notificări",
+        "toggleLabel": "Notificări push pe acest dispozitiv",
+        "enabledToast": "Notificările push au fost activate",
+        "disabledToast": "Notificările push au fost dezactivate",
+        "unsupported": "Browserul tău nu suportă notificări push.",
+        "denied": "Notificările sunt blocate pentru acest site. Permite-le din setările site-ului browserului tău pentru a le activa."
+      }
     }
   }
 }
