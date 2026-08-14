@@ -23,7 +23,7 @@ RUN npm ci
 # Docker a dependency edge on it, so a build fails here if the tests do.
 COPY --from=test /app/package.json /tmp/.tested
 COPY src/ui/index.html src/ui/vite.config.ts ./
-COPY src/ui/tsconfig.json src/ui/tsconfig.app.json src/ui/tsconfig.node.json ./
+COPY src/ui/tsconfig.json src/ui/tsconfig.app.json src/ui/tsconfig.node.json src/ui/tsconfig.sw.json ./
 COPY src/ui/public ./public
 COPY src/ui/src ./src
 COPY src/domain /domain
