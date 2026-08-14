@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { playwright } from '@vitest/browser-playwright'
@@ -12,6 +13,14 @@ export default defineConfig({
     // of React to the browser (one pulled in via vitest-browser-react, one
     // via @fluentui/react-components), which trips "Invalid hook call".
     dedupe: ['react', 'react-dom'],
+    alias: {
+      // 'virtual:pwa-register/react' only exists when the VitePWA plugin
+      // runs (see vite.config.ts), which this config intentionally omits.
+      // Alias (rather than vi.mock) so Vite's dependency scanner — which
+      // resolves imports before any test-time mocking applies — also finds
+      // a real module.
+      'virtual:pwa-register/react': fileURLToPath(new URL('./src/test-mocks/pwaRegisterReact.ts', import.meta.url)),
+    },
   },
   server: {
     fs: {

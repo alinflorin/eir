@@ -1,9 +1,11 @@
 node_modules
 dist
 dist-ssr
+dev-dist
 *.local
 .git
 
 # Vitest
 __screenshots__
 coverage
+.vitest-attachments

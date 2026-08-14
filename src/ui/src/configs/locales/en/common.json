@@ -26,6 +26,23 @@
     "loading": "Loading…",
     "authError": "Authentication error: {{message}}"
   },
+  "confirm": {
+    "defaultTitle": "Please confirm",
+    "confirmButton": "Confirm",
+    "cancelButton": "Cancel"
+  },
+  "pwa": {
+    "updateAvailable": {
+      "title": "Update available",
+      "body": "A new version of the app is ready. Reload now to update?",
+      "confirmButton": "Reload",
+      "cancelButton": "Later"
+    },
+    "offlineReady": {
+      "title": "Ready for offline use",
+      "body": "The app has been installed and will now work offline."
+    }
+  },
   "pages": {
     "home": {
       "title": "Home",

@@ -26,6 +26,23 @@
     "loading": "Se încarcă…",
     "authError": "Eroare de autentificare: {{message}}"
   },
+  "confirm": {
+    "defaultTitle": "Te rugăm să confirmi",
+    "confirmButton": "Confirmă",
+    "cancelButton": "Anulează"
+  },
+  "pwa": {
+    "updateAvailable": {
+      "title": "Actualizare disponibilă",
+      "body": "O nouă versiune a aplicației este gata. Reîncarci acum pentru a actualiza?",
+      "confirmButton": "Reîncarcă",
+      "cancelButton": "Mai târziu"
+    },
+    "offlineReady": {
+      "title": "Gata pentru utilizare offline",
+      "body": "Aplicația a fost instalată și va funcționa acum și offline."
+    }
+  },
   "pages": {
     "home": {
       "title": "Acasă",

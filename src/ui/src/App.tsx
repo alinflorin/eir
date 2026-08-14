@@ -7,6 +7,8 @@ import { useIsMobile } from './hooks/useIsMobile'
 import { useThemePreference } from './hooks/useThemePreference'
 import { useEventBus } from './hooks/useEventBus'
 import { ToastProvider } from './hooks/useToast'
+import { ConfirmProvider } from './hooks/useConfirm'
+import { useServiceWorkerUpdate } from './hooks/useServiceWorkerUpdate'
 import GlobalErrorHandler from './components/GlobalErrorHandler'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
@@ -15,6 +17,14 @@ import Home from './pages/Home'
 import Contact from './pages/Contact'
 import About from './pages/About'
 import Settings from './pages/Settings'
+
+// Registers the service worker and drives the update/offline-ready UX;
+// rendered with no output of its own, nested inside ToastProvider and
+// ConfirmProvider so it can use both hooks.
+function ServiceWorkerUpdater() {
+  useServiceWorkerUpdate()
+  return null
+}
 
 const useStyles = makeStyles({
   root: {
@@ -131,42 +141,45 @@ function App() {
   return (
     <FluentProvider theme={theme}>
       <ToastProvider>
-        <div className={styles.root}>
-          <Header
-            isMobile={isMobile}
-            onToggleDrawer={() => setDrawerOpen((open) => !open)}
-            isAuthLoading={auth.isLoading}
-            isAuthenticated={auth.isAuthenticated}
-            name={auth.user?.profile.name}
-            email={auth.user?.profile.email}
-            themePreference={preference}
-            onThemePreferenceChange={setPreference}
-            onLoginClick={handleLoginClick}
-            onLogoutClick={handleLogoutClick}
-          />
+        <ConfirmProvider>
+          <ServiceWorkerUpdater />
+          <div className={styles.root}>
+            <Header
+              isMobile={isMobile}
+              onToggleDrawer={() => setDrawerOpen((open) => !open)}
+              isAuthLoading={auth.isLoading}
+              isAuthenticated={auth.isAuthenticated}
+              name={auth.user?.profile.name}
+              email={auth.user?.profile.email}
+              themePreference={preference}
+              onThemePreferenceChange={setPreference}
+              onLoginClick={handleLoginClick}
+              onLogoutClick={handleLogoutClick}
+            />
 
-          <div className={styles.body}>
-            <Sidebar isMobile={isMobile} open={drawerOpen} onOpenChange={setDrawerOpen} />
+            <div className={styles.body}>
+              <Sidebar isMobile={isMobile} open={drawerOpen} onOpenChange={setDrawerOpen} />
 
-            <main className={styles.main}>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/about" element={<About />} />
-                <Route
-                  path="/settings"
-                  element={
-                    <ProtectedRoute>
-                      <Settings />
-                    </ProtectedRoute>
-                  }
-                />
-              </Routes>
-            </main>
+              <main className={styles.main}>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/about" element={<About />} />
+                  <Route
+                    path="/settings"
+                    element={
+                      <ProtectedRoute>
+                        <Settings />
+                      </ProtectedRoute>
+                    }
+                  />
+                </Routes>
+              </main>
+            </div>
           </div>
-        </div>
 
-        <GlobalErrorHandler />
+          <GlobalErrorHandler />
+        </ConfirmProvider>
       </ToastProvider>
     </FluentProvider>
   )
