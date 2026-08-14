@@ -15,7 +15,7 @@ COPY src/ui/src ./src
 COPY src/domain /domain
 RUN npm test
 
-FROM node:24-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 COPY src/ui/package.json src/ui/package-lock.json ./
 RUN npm ci
