@@ -1,7 +1,7 @@
 # e2e
 
 Playwright Test suite covering full user journeys against the real dockerized
-stack (ui, invoicing, RabbitMQ, Dex, Caddy) — as opposed to `src/ui`'s
+stack (ui, notifications, RabbitMQ, Dex, Caddy) — as opposed to `src/ui`'s
 Vitest-browser component tests, which cover individual components in
 isolation.
 

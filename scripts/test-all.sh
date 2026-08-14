@@ -3,7 +3,7 @@ set -uo pipefail
 
 cd "$(dirname "$0")/.."
 
-projects=(src/ui src/invoicing)
+projects=(src/ui src/notifications)
 failed=()
 
 for project in "${projects[@]}"; do

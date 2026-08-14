@@ -37,10 +37,6 @@ staticClients:
     redirectURIs:
       - https://eir.localhost/
 
-  - id: invoicing
-    name: invoicing
-    secretEnv: INVOICING_CLIENT_SECRET
-
   - id: notifications
     name: notifications
     secretEnv: NOTIFICATIONS_CLIENT_SECRET
@@ -52,7 +48,6 @@ staticClients:
     public: true
     trustedPeers:
       - ui
-      - invoicing
       - notifications
       - rabbitmq-management
 
@@ -72,7 +67,6 @@ staticClients:
     name: rabbitmq-service
     public: true
     trustedPeers:
-      - invoicing
       - notifications
 
   # Audience-only client whose scope_aliases entry (see rabbitmq.conf) grants

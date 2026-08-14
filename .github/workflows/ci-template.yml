@@ -9,7 +9,7 @@ on:
   workflow_call:
     inputs:
       image-name:
-        description: Image name, e.g. "ui" or "invoicing"
+        description: Image name, e.g. "ui" or "notifications"
         required: true
         type: string
       dockerfile:

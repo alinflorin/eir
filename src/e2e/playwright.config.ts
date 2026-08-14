@@ -22,7 +22,7 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
 
-  // The stack (Caddy, Dex, RabbitMQ, ui, invoicing) is expected to already
+  // The stack (Caddy, Dex, RabbitMQ, ui, notifications) is expected to already
   // be up via `docker compose up` — mkcert-trusted certs from
   // ../../scripts/setup-dev.sh make https://eir.localhost / dex.localhost
   // resolve and trust locally, so no webServer/ignoreHTTPSErrors hooks are

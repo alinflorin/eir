@@ -11,18 +11,6 @@ services:
       - ./src/ui:/app
       - ./src/domain:/domain
       - ui_node_modules:/app/node_modules
-  invoicing:
-    image: node:24-alpine
-    working_dir: /app
-    command: sh -c "npm install && npm run dev"
-    environment:
-      - CLIENT_SECRET=${INVOICING_CLIENT_SECRET}
-    depends_on:
-      - rabbitmq
-    volumes:
-      - ./src/invoicing:/app
-      - ./src/domain:/domain
-      - invoicing_node_modules:/app/node_modules
   notifications:
     image: node:24-alpine
     working_dir: /app
@@ -66,7 +54,6 @@ services:
     command: ["sh", "-c", "sed \"s|\\$$DEX_ADMIN_PASSWORD_HASH|$$DEX_ADMIN_PASSWORD_HASH|\" /etc/dex/config.yml > /tmp/config.yml && dex serve /tmp/config.yml"]
     environment:
       - DEX_ADMIN_PASSWORD_HASH=${DEX_ADMIN_PASSWORD_HASH}
-      - INVOICING_CLIENT_SECRET=${INVOICING_CLIENT_SECRET}
       - NOTIFICATIONS_CLIENT_SECRET=${NOTIFICATIONS_CLIENT_SECRET}
     volumes:
       - ./dex-config.yml:/etc/dex/config.yml:ro
@@ -89,7 +76,6 @@ services:
 
 volumes:
   ui_node_modules:
-  invoicing_node_modules:
   notifications_node_modules:
   rabbitmq_data:
   dex_data:
