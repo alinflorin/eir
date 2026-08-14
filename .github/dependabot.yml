@@ -1,35 +1,17 @@
 # Dependabot version updates for the eir monorepo.
 # https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+#
+# `directories` uses a glob, so any new service added under src/<name>/ is
+# picked up automatically — no per-service entry needed. Dependabot skips
+# any matched directory that lacks the ecosystem's manifest (package.json
+# / Dockerfile), so this is safe even for non-service dirs like src/domain.
 
 version: 2
 updates:
   # --- npm workspaces (each service has its own package.json) ---
   - package-ecosystem: "npm"
-    directory: "/src/ui"
-    schedule:
-      interval: "weekly"
-    groups:
-      npm-dependencies:
-        patterns: ["*"]
-
-  - package-ecosystem: "npm"
-    directory: "/src/template-microservice"
-    schedule:
-      interval: "weekly"
-    groups:
-      npm-dependencies:
-        patterns: ["*"]
-
-  - package-ecosystem: "npm"
-    directory: "/src/notifications"
-    schedule:
-      interval: "weekly"
-    groups:
-      npm-dependencies:
-        patterns: ["*"]
-
-  - package-ecosystem: "npm"
-    directory: "/src/e2e"
+    directories:
+      - "/src/*"
     schedule:
       interval: "weekly"
     groups:
@@ -38,17 +20,8 @@ updates:
 
   # --- Docker base images used by each service's Dockerfile ---
   - package-ecosystem: "docker"
-    directory: "/src/ui"
-    schedule:
-      interval: "weekly"
-
-  - package-ecosystem: "docker"
-    directory: "/src/template-microservice"
-    schedule:
-      interval: "weekly"
-
-  - package-ecosystem: "docker"
-    directory: "/src/notifications"
+    directories:
+      - "/src/*"
     schedule:
       interval: "weekly"
 
