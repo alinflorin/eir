@@ -44,8 +44,8 @@ describe('useToast', () => {
 
     await screen.getByRole('button', { name: 'Show toast' }).click()
 
-    await expect.element(screen.getByText('Saved')).toBeVisible()
-    await expect.element(screen.getByText('Your changes were saved.')).toBeVisible()
+    await expect.element(screen.getByText('Saved', { exact: true })).toBeVisible()
+    await expect.element(screen.getByText('Your changes were saved.', { exact: true })).toBeVisible()
   })
 
   it('renders a close button on the toast', async () => {
