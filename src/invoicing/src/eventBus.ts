@@ -7,17 +7,26 @@ import { getConfig } from './config.js'
 // messages from) the UI's useEventBus MQTT clients.
 const EXCHANGE = 'amq.topic'
 
+// Every routing key lives under one of these two top-level namespaces,
+// mirroring the UI's `users/<userName>/<topic>` MQTT topics (rabbitmq_mqtt
+// translates '/' <-> '.' at the MQTT boundary) plus a `services/<serviceName>/<topic>`
+// counterpart for service-to-service traffic. See rabbitmq.conf: the ui's
+// scope alias is locked to its own `users.{name}.*`, while the
+// rabbitmq-service alias (used here) has free rein over both.
+type PublishTarget = { user: string } | { service: string }
+
+function targetPrefix(target: PublishTarget): string {
+  return 'user' in target ? `users.${target.user}` : `services.${target.service}`
+}
+
 const INITIAL_RECONNECT_DELAY_MS = 1_000
 const MAX_RECONNECT_DELAY_MS = 30_000
 
 let reconnectDelay = INITIAL_RECONNECT_DELAY_MS
 let renewalTimer: NodeJS.Timeout | undefined
 
-// Set once connected; cleared on disconnect. `username` is the "name" claim
-// from the access token, mirroring the UI's use of the OIDC profile's name
-// as the per-user topic namespace (see useEventBus.ts).
+// Set once connected; cleared on disconnect.
 let channel: Channel | undefined
-let username: string | undefined
 
 // Queue bindings live on the channel, which is torn down and replaced on
 // every reconnect — so consumers registered here are re-bound after each
@@ -72,7 +81,6 @@ async function connect(): Promise<void> {
 
   console.log('connected to rabbitmq')
   reconnectDelay = INITIAL_RECONNECT_DELAY_MS
-  username = decodeNameClaim(token.accessToken)
   channel = await connection.createChannel()
   connectListeners.forEach((listener) => listener())
 
@@ -80,7 +88,6 @@ async function connect(): Promise<void> {
   connection.on('close', () => {
     console.log('rabbitmq connection closed, reconnecting')
     channel = undefined
-    username = undefined
     clearRenewalTimer()
     scheduleReconnect()
   })
@@ -89,76 +96,66 @@ async function connect(): Promise<void> {
 }
 
 /**
- * Extracts the "name" claim from the (unverified) access token payload —
- * rabbitmq already validated the token's signature on connect, so this is
- * just reading a claim off a token we trust, the same claim the UI reads
- * from the OIDC profile (see App.tsx/useEventBus.ts).
- */
-function decodeNameClaim(accessToken: string): string {
-  const payload = accessToken.split('.')[1]
-  if (!payload) {
-    throw new Error('malformed access token: missing JWT payload segment')
-  }
-  const claims = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as Record<string, unknown>
-  if (typeof claims.name !== 'string') {
-    throw new Error('access token missing "name" claim')
-  }
-  return claims.name
-}
-
-/**
- * Publishes a message under a user's topic namespace, keyed by the
- * payload's class name — identical scheme to useEventBus's publish.
- * Defaults to the current (service account's) username; pass
- * targetUsername to publish into a different user's namespace instead
- * (e.g. a service replying to the user who made a request).
+ * Publishes a message keyed by the payload's class name, under either a
+ * user's or a service's topic namespace depending on `target`:
+ *   publish(payload, { user: 'alice' })      -> users.alice.ClassName
+ *   publish(payload, { service: 'invoicing' }) -> services.invoicing.ClassName
+ * Defaults to this service's own namespace (`getConfig().serviceName`) when
+ * no target is given, e.g. for a service announcing its own events.
  * Routing keys use '.' natively (rabbitmq_mqtt translates '/' <-> '.' at
- * the MQTT boundary), so this reaches MQTT subscribers on `${username}/${ClassName}`.
+ * the MQTT boundary), so `{ user: 'alice' }` reaches MQTT subscribers on
+ * `users/alice/ClassName`.
  */
-export function publish<T extends object>(payload: T, targetUsername?: string): void {
-  const target = targetUsername ?? username
-  if (!channel || !target) {
+export function publish<T extends object>(payload: T, target?: PublishTarget): void {
+  if (!channel) {
     console.warn('Cannot publish: not connected to rabbitmq')
     return
   }
-  const routingKey = `${target}.${payload.constructor.name}`
+  const routingKey = `${targetPrefix(target ?? { service: getConfig().serviceName })}.${payload.constructor.name}`
   // persistent: true so messages sitting in the now-durable bound queues
   // (see bind()) survive a broker restart during their 1-minute TTL.
   channel.publish(EXCHANGE, routingKey, Buffer.from(JSON.stringify(payload)), { persistent: true })
 }
 
 /**
- * Subscribes to messages of the given class, published under the current
- * user's topic namespace. Returns a function that cancels the subscription.
- * Identical scheme to useEventBus's subscribe, but over a dedicated
- * exclusive/auto-delete queue rather than an MQTT session.
+ * Subscribes to messages of the given class published under this service's
+ * own namespace (`services.<serviceName>.ClassName`, e.g. a reply addressed
+ * specifically to this service). Returns a function that cancels the
+ * subscription. Identical scheme to useEventBus's subscribe, but over a
+ * dedicated durable queue rather than an MQTT session.
  */
 export async function consume<T extends object>(
   type: new (...args: never[]) => T,
   onMessage: (payload: T) => void,
   ttlMs?: number,
 ): Promise<() => void> {
-  if (!username) {
+  if (!channel) {
     console.warn('Cannot consume: not connected to rabbitmq')
     return () => {}
   }
-  return bind(`${username}.${type.name}`, (payload: T) => onMessage(payload), ttlMs)
+  return bind(`services.${getConfig().serviceName}.${type.name}`, (payload: T) => onMessage(payload), ttlMs)
 }
 
 /**
- * Subscribes to messages of the given class published under *any* user's
- * topic namespace (routing key `*.ClassName` — AMQP's topic-exchange '*'
- * matches exactly one word, i.e. one username segment). Useful for a
- * service like invoicing that reacts to requests from any user, rather
- * than one scoped to its own service account's namespace.
+ * Subscribes to messages of the given class published under *any* user's or
+ * *any* service's topic namespace (routing key `users.*.ClassName` or
+ * `services.*.ClassName` — AMQP's topic-exchange '*' matches exactly one
+ * word, i.e. one username/serviceName segment). Useful for a service like
+ * invoicing that reacts to requests from any user, rather than one scoped
+ * to its own namespace. Backend services get free rein over both
+ * namespaces (see rabbitmq.conf's rabbitmq-service scope alias) — the
+ * frontend cannot do this at all, it's scoped to its own user namespace only.
  */
 export async function consumeAny<T extends object>(
   type: new (...args: never[]) => T,
-  onMessage: (payload: T, fromUsername: string) => void,
+  from: 'users' | 'services',
+  onMessage: (payload: T, name: string) => void,
   ttlMs?: number,
 ): Promise<() => void> {
-  return bind(`*.${type.name}`, (payload: T, routingKey: string) => {
-    onMessage(payload, routingKey.slice(0, routingKey.lastIndexOf('.')))
+  return bind(`${from}.*.${type.name}`, (payload: T, routingKey: string) => {
+    const name = routingKey.split('.')[1]
+    if (name === undefined) throw new Error(`malformed routing key: ${routingKey}`)
+    onMessage(payload, name)
   }, ttlMs)
 }
 

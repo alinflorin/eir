@@ -40,7 +40,7 @@ function setSharedUsername(username: string | null) {
 export interface EventBus {
   connect: (accessToken: string, username: string) => void
   disconnect: () => void
-  publish: <T extends object>(payload: T, targetUsername?: string) => void
+  publish: <T extends object>(payload: T) => void
   subscribe: <T extends object>(type: new (...args: never[]) => T, onMessage: (payload: T) => void) => () => void
 }
 
@@ -77,14 +77,17 @@ export function useEventBus(): EventBus {
     setSharedUsername(null)
   }, [])
 
+  // The frontend may only ever publish into its own logged-in user's
+  // namespace (no targeting other users) — see rabbitmq.conf's scoped-down
+  // topic permissions for the 'rabbitmq' (ui) scope alias, which enforce
+  // this same restriction broker-side.
   const publish = useCallback(
-    <T extends object>(payload: T, targetUsername?: string) => {
-      const target = targetUsername ?? username
-      if (!target) {
+    <T extends object>(payload: T) => {
+      if (!username) {
         console.warn('Cannot publish: no authenticated user')
         return
       }
-      const topic = `${target}/${payload.constructor.name}`
+      const topic = `users/${username}/${payload.constructor.name}`
       client?.publish(topic, JSON.stringify(payload))
     },
     [client, username],
@@ -96,7 +99,7 @@ export function useEventBus(): EventBus {
         return () => {}
       }
 
-      const topic = `${username}/${type.name}`
+      const topic = `users/${username}/${type.name}`
       // The broker round-trips topics through an AMQP routing key ('/' -> '.' on subscribe,
       // '.' -> '/' on delivery), so any dots already in the topic (e.g. in an email address)
       // come back as extra '/' segments. Normalize the filter the same lossy way before matching.

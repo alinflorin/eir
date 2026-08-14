@@ -9,10 +9,10 @@ configure('invoicing')
 console.log('service starting')
 
 onConnect(() => {
-  void consumeAny(CreateInvoiceRequested, (request, requestedBy) => {
+  void consumeAny(CreateInvoiceRequested, 'users', (request, requestedBy) => {
     console.log(`invoice requested by ${requestedBy}`, request)
-    publish(new ExceptionOccurred("mesaj", 'titlu'), requestedBy);
-    publish(new InvoiceCreated('asdasdasda'), requestedBy);
+    publish(new ExceptionOccurred("mesaj", 'titlu'), { user: requestedBy });
+    publish(new InvoiceCreated('asdasdasda'), { user: requestedBy });
   }, 10000)
 })
 
