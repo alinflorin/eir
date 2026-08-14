@@ -10,7 +10,6 @@ const baseURL = process.env.E2E_BASE_URL ?? 'https://eir.localhost'
 
 export default defineConfig({
   testDir: './tests',
-  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   timeout: 60000,
   retries: process.env.CI ? 2 : 0,
