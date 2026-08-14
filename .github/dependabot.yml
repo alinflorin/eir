@@ -1,11 +1,59 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
+# Dependabot version updates for the eir monorepo.
 # https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 
 version: 2
 updates:
-  - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  # --- npm workspaces (each service has its own package.json) ---
+  - package-ecosystem: "npm"
+    directory: "/src/ui"
+    schedule:
+      interval: "weekly"
+    groups:
+      npm-dependencies:
+        patterns: ["*"]
+
+  - package-ecosystem: "npm"
+    directory: "/src/template-microservice"
+    schedule:
+      interval: "weekly"
+    groups:
+      npm-dependencies:
+        patterns: ["*"]
+
+  - package-ecosystem: "npm"
+    directory: "/src/notifications"
+    schedule:
+      interval: "weekly"
+    groups:
+      npm-dependencies:
+        patterns: ["*"]
+
+  - package-ecosystem: "npm"
+    directory: "/src/e2e"
+    schedule:
+      interval: "weekly"
+    groups:
+      npm-dependencies:
+        patterns: ["*"]
+
+  # --- Docker base images used by each service's Dockerfile ---
+  - package-ecosystem: "docker"
+    directory: "/src/ui"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "docker"
+    directory: "/src/template-microservice"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "docker"
+    directory: "/src/notifications"
+    schedule:
+      interval: "weekly"
+
+  # --- GitHub Actions used in workflows ---
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
       interval: "weekly"
