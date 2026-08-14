@@ -14,6 +14,13 @@ export default defineConfig({
       // activating on its own.
       registerType: 'prompt',
       injectRegister: false,
+      // injectManifest (rather than the default generateSW) because
+      // src/sw.ts needs its own custom 'push'/'notificationclick' handlers
+      // for web push — generateSW only lets you configure caching, not add
+      // arbitrary event listeners.
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       manifest: {
         name: 'ui',
         short_name: 'ui',
@@ -29,27 +36,13 @@ export default defineConfig({
           { src: 'maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
-      workbox: {
+      injectManifest: {
         // App shell (JS/CSS/HTML + icons/manifest) is precached at build
-        // time so the app boots offline.
+        // time so the app boots offline. Runtime caching for anything else
+        // (e.g. images/fonts fetched at runtime) is set up by hand in
+        // src/sw.ts, since injectManifest has no equivalent of generateSW's
+        // `runtimeCaching` option.
         globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],
-        // Anything not covered by the precache manifest (e.g. images/fonts
-        // fetched at runtime) is cached lazily with a stale-while-revalidate
-        // strategy: served from cache instantly, refreshed in the background.
-        runtimeCaching: [
-          {
-            urlPattern: ({ request }) =>
-              request.destination === 'image' || request.destination === 'font',
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'runtime-assets',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
-              },
-            },
-          },
-        ],
       },
       devOptions: {
         // Lets `npm run dev` register a (dev-mode) service worker too, so

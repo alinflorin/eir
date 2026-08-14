@@ -22,5 +22,9 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "../domain"]
+  "include": ["src", "../domain"],
+  // sw.ts runs in the ServiceWorker global scope (self is a
+  // ServiceWorkerGlobalScope, not a Window), which conflicts with this
+  // config's DOM lib — it's type-checked separately by tsconfig.sw.json.
+  "exclude": ["src/sw.ts"]
 }
