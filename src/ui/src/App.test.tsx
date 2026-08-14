@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { render } from 'vitest-browser-react'
 import { MemoryRouter } from 'react-router'
 import { useAuth } from 'react-oidc-context'
-import type { AuthContextProps } from 'react-oidc-context'
+import type { AuthContextProps, ErrorContext } from 'react-oidc-context'
 import { useEventBus } from './hooks/useEventBus'
 import App from './App'
 
@@ -89,7 +89,8 @@ describe('App', () => {
   })
 
   it('shows an error message when auth fails', async () => {
-    mockAuth({ error: new Error('boom') })
+    const e: ErrorContext = {message: 'boom', name: 'boom', source: 'signinSilent', args: undefined};
+    mockAuth({ error: e })
     mockEventBus()
 
     const screen = await renderApp()
