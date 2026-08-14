@@ -1,0 +1,31 @@
+name: CI - ui
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/ui/**'
+      - 'src/domain/**'
+      - '.github/workflows/ci-ui.yml'
+      - '.github/workflows/ci-template.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/ui/**'
+      - 'src/domain/**'
+      - '.github/workflows/ci-ui.yml'
+      - '.github/workflows/ci-template.yml'
+
+concurrency:
+  group: ci-ui-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci-template.yml
+    with:
+      image-name: ui
+      dockerfile: src/ui/Dockerfile
+    permissions:
+      contents: read
+      packages: write
