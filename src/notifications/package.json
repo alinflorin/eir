@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "amqplib": "^2.0.1",
+    "mongodb": "^7.5.0",
     "nodemailer": "^9.0.5",
     "web-push": "^3.6.7"
   },
