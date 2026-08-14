@@ -1,0 +1,32 @@
+name: CI - notifications
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/notifications/**'
+      - 'src/domain/**'
+      - '.github/workflows/ci-notifications.yml'
+      - '.github/workflows/ci-template.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/notifications/**'
+      - 'src/domain/**'
+      - '.github/workflows/ci-notifications.yml'
+      - '.github/workflows/ci-template.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ci-notifications-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci-template.yml
+    with:
+      image-name: notifications
+      dockerfile: src/notifications/Dockerfile
+    permissions:
+      contents: read
+      packages: write

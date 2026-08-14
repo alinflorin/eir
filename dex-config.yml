@@ -41,6 +41,10 @@ staticClients:
     name: invoicing
     secretEnv: INVOICING_CLIENT_SECRET
 
+  - id: notifications
+    name: notifications
+    secretEnv: NOTIFICATIONS_CLIENT_SECRET
+
   # Audience-only client: no redirect URIs, exists so tokens can be scoped
   # to it via `audience:server:client_id:rabbitmq` requested by a trusted peer.
   - id: rabbitmq
@@ -49,6 +53,7 @@ staticClients:
     trustedPeers:
       - ui
       - invoicing
+      - notifications
       - rabbitmq-management
 
   # Browser client for the RabbitMQ management UI's own OAuth login (the
@@ -68,6 +73,7 @@ staticClients:
     public: true
     trustedPeers:
       - invoicing
+      - notifications
 
   # Audience-only client whose scope_aliases entry (see rabbitmq.conf) grants
   # the administrator tag. Dex won't accept arbitrary scopes like

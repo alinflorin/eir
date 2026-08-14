@@ -1,0 +1,26 @@
+{
+  "name": "notifications",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -b",
+    "start": "node dist/notifications/src/index.js",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "amqplib": "^2.0.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.13.3",
+    "eslint": "^10.8.0",
+    "globals": "^17.7.0",
+    "tsx": "^4.20.6",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.65.0",
+    "vitest": "^4.1.10"
+  }
+}
