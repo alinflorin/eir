@@ -1,7 +1,7 @@
 # Build context: repo root (needs access to ../domain)
 # docker build -f src/notifications/Dockerfile -t notifications .
 
-FROM node:24-alpine AS test
+FROM node:26-alpine AS test
 WORKDIR /app
 COPY src/notifications/package.json src/notifications/package-lock.json ./
 RUN npm ci
@@ -10,7 +10,7 @@ COPY src/notifications/src ./src
 COPY src/domain /domain
 RUN npm test
 
-FROM node:24-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 COPY src/notifications/package.json src/notifications/package-lock.json ./
 RUN npm ci
@@ -22,7 +22,7 @@ COPY src/notifications/src ./src
 COPY src/domain /domain
 RUN npm run build
 
-FROM node:24-alpine
+FROM node:26-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 COPY src/notifications/package.json src/notifications/package-lock.json ./
