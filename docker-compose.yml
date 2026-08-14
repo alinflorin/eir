@@ -33,6 +33,15 @@ services:
     volumes:
       - mongodb_data:/data/db
 
+  smtp:
+    image: maildev/maildev
+    environment:
+      - MAILDEV_INCOMING_USER=${SMTP_USER}
+      - MAILDEV_INCOMING_PASS=${SMTP_PASSWORD}
+    ports:
+      - "25:1025"
+      - "1080:1080"
+
   rabbitmq:
     image: rabbitmq:4.3.4-alpine
     ports:
