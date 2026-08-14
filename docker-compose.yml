@@ -23,12 +23,15 @@ services:
       - ./src/invoicing:/app
       - ./src/domain:/domain
       - invoicing_node_modules:/app/node_modules
-  # mongodb:
-  #   image: mongo:8.3.7-noble
-  #   ports:
-  #     - "27017:27017"
-  #   volumes:
-  #     - /data/db
+  mongodb:
+    image: mongo:8.3.7-noble
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
 
   rabbitmq:
     image: rabbitmq:4.3.4-alpine
@@ -76,3 +79,4 @@ volumes:
   invoicing_node_modules:
   rabbitmq_data:
   dex_data:
+  mongodb_data:
