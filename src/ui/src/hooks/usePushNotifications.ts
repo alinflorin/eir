@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useAuth } from 'react-oidc-context'
 import { PushSubscriptionAddRequested } from '../../../domain/push-subscription-add-requested'
 import { PushSubscriptionAdded } from '../../../domain/push-subscription-added'
 import { PushSubscriptionDeleteRequested } from '../../../domain/push-subscription-delete-requested'
@@ -43,15 +44,23 @@ function checkSupport(): boolean {
  * REST) via PushSubscriptionAddRequested/DeleteRequested and their
  * PushSubscriptionAdded/Deleted replies. ExceptionOccurred failures surface
  * through GlobalErrorHandler, same as any other event-bus request.
+ *
+ * Also auto-requests permission (once per login) as soon as the user is
+ * authenticated and the event bus has connected, but only if this device has
+ * neither an existing subscription nor a prior refusal — i.e. state is still
+ * 'default' once the initial subscription probe below has settled.
  */
 export function usePushNotifications() {
   const { t } = useTranslation()
   const toast = useToast()
-  const { publish, subscribe } = useEventBus()
+  const auth = useAuth()
+  const { publish, subscribe, isConnected } = useEventBus()
   const [state, setState] = useState<PushNotificationState>(() => {
     if (!checkSupport()) return 'unsupported'
     return Notification.permission === 'denied' ? 'denied' : 'default'
   })
+  const [probed, setProbed] = useState(!checkSupport())
+  const autoRequestedRef = useRef(false)
 
   // Reflect this device's actual subscription state on mount, in case it was
   // enabled in a previous session (or revoked via the browser's own UI).
@@ -67,6 +76,7 @@ export function usePushNotifications() {
         } else {
           setState(Notification.permission === 'denied' ? 'denied' : 'default')
         }
+        setProbed(true)
       })
     return () => {
       cancelled = true
@@ -139,6 +149,31 @@ export function usePushNotifications() {
       setState('enabled')
     }
   }, [publish])
+
+  // Auto-request permission once per login: as soon as we're authenticated,
+  // the event bus is connected, and the initial subscription probe above has
+  // settled on 'default' (no existing subscription, no prior refusal).
+  useEffect(() => {
+    if (!auth.isAuthenticated || !isConnected || !probed) return
+    if (autoRequestedRef.current) return
+    if (state !== 'default') return
+    // Deferred a tick so enable()'s setState('enabling') doesn't fire
+    // synchronously from within this effect's body; the ref is only latched
+    // once the call actually fires, so a cancelled/rescheduled timer (e.g.
+    // from a dependency changing before it runs) doesn't permanently skip it.
+    const timer = setTimeout(() => {
+      autoRequestedRef.current = true
+      void enable()
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [auth.isAuthenticated, isConnected, probed, state, enable])
+
+  // Allow another auto-request attempt on the next login.
+  useEffect(() => {
+    if (!auth.isAuthenticated || !isConnected) {
+      autoRequestedRef.current = false
+    }
+  }, [auth.isAuthenticated, isConnected])
 
   return { state, enable, disable }
 }

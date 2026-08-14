@@ -69,12 +69,8 @@
       "title": "Settings",
       "body": "Manage your preferences.",
       "notifications": {
-        "title": "Notifications",
-        "toggleLabel": "Push notifications on this device",
         "enabledToast": "Push notifications enabled",
-        "disabledToast": "Push notifications disabled",
-        "unsupported": "Your browser doesn't support push notifications.",
-        "denied": "Notifications are blocked for this site. Allow them in your browser's site settings to enable."
+        "disabledToast": "Push notifications disabled"
       }
     }
   }

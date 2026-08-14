@@ -9,6 +9,7 @@ import { useEventBus } from './hooks/useEventBus'
 import { ToastProvider } from './hooks/useToast'
 import { ConfirmProvider } from './hooks/useConfirm'
 import { useServiceWorkerUpdate } from './hooks/useServiceWorkerUpdate'
+import { usePushNotifications } from './hooks/usePushNotifications'
 import GlobalErrorHandler from './components/GlobalErrorHandler'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
@@ -23,6 +24,16 @@ import Settings from './pages/Settings'
 // ConfirmProvider so it can use both hooks.
 function ServiceWorkerUpdater() {
   useServiceWorkerUpdate()
+  return null
+}
+
+// Mounted once for the app's lifetime so push notification permission is
+// auto-requested (at most once per login) as soon as the user is
+// authenticated and the event bus connects, rather than on demand from a
+// Settings page toggle. No output of its own; nested inside ToastProvider so
+// it can show the enabled/disabled toast.
+function PushNotificationRequester() {
+  usePushNotifications()
   return null
 }
 
@@ -143,6 +154,7 @@ function App() {
       <ToastProvider>
         <ConfirmProvider>
           <ServiceWorkerUpdater />
+          <PushNotificationRequester />
           <div className={styles.root}>
             <Header
               isMobile={isMobile}

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderHook } from 'vitest-browser-react'
 import { FluentProvider, webLightTheme } from '@fluentui/react-components'
+import { useAuth } from 'react-oidc-context'
 import { ToastProvider } from './useToast'
 import { useEventBus } from './useEventBus'
 import { usePushNotifications } from './usePushNotifications'
@@ -14,11 +15,22 @@ vi.mock('./useEventBus', () => ({
   useEventBus: vi.fn(),
 }))
 
-function mockEventBus() {
+vi.mock('react-oidc-context', () => ({
+  // Defaults to unauthenticated so existing tests (which don't care about
+  // auto-request) don't need to opt in explicitly; override with mockAuth().
+  useAuth: vi.fn(() => ({ isAuthenticated: false })),
+}))
+
+function mockEventBus(isConnected = false) {
   const publish = vi.fn()
   const subscribe = vi.fn().mockReturnValue(() => {})
-  vi.mocked(useEventBus).mockReturnValue({ connect: vi.fn(), disconnect: vi.fn(), publish, subscribe })
+  vi.mocked(useEventBus).mockReturnValue({ connect: vi.fn(), disconnect: vi.fn(), publish, subscribe, isConnected })
   return { publish, subscribe }
+}
+
+function mockAuth(isAuthenticated = false) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  vi.mocked(useAuth).mockReturnValue({ isAuthenticated } as any)
 }
 
 function subscribedHandler(subscribe: ReturnType<typeof mockEventBus>['subscribe'], type: unknown) {
@@ -78,6 +90,7 @@ function wrapper({ children }: { children: ReactNode }) {
 describe('usePushNotifications', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
+    vi.mocked(useAuth).mockReturnValue({ isAuthenticated: false } as ReturnType<typeof useAuth>)
   })
 
   it('starts as unsupported when the browser lacks the Push API', async () => {
@@ -195,5 +208,70 @@ describe('usePushNotifications', () => {
 
     expect(publish).not.toHaveBeenCalled()
     expect(result.current.state).toBe('default')
+  })
+
+  describe('auto-request on login', () => {
+    it('requests permission once authenticated, connected, and no subscription/refusal exists', async () => {
+      mockAuth(true)
+      const { publish } = mockEventBus(true)
+      const requestPermission = stubNotification('default', vi.fn().mockResolvedValue('granted'))
+      const subscription = fakeSubscription({ endpoint: 'https://push.example.com/auto' })
+      stubServiceWorker(fakeRegistration({ getSubscription: vi.fn().mockResolvedValue(null), subscribe: vi.fn().mockResolvedValue(subscription) }))
+
+      await renderHook(() => usePushNotifications(), { wrapper })
+
+      await expect.poll(() => requestPermission.mock.calls.length).toBe(1)
+      expect(publish).toHaveBeenCalledWith(
+        new PushSubscriptionAddRequested('https://push.example.com/auto', null, { p256dh: 'p256dh-key', auth: 'auth-key' }),
+      )
+    })
+
+    it('does not auto-request when not authenticated, even if the event bus is connected', async () => {
+      mockAuth(false)
+      mockEventBus(true)
+      const requestPermission = stubNotification('default')
+      stubServiceWorker(fakeRegistration({ getSubscription: vi.fn().mockResolvedValue(null) }))
+
+      const { result } = await renderHook(() => usePushNotifications(), { wrapper })
+
+      await expect.poll(() => result.current.state).toBe('default')
+      expect(requestPermission).not.toHaveBeenCalled()
+    })
+
+    it('does not auto-request when authenticated but the event bus is not connected', async () => {
+      mockAuth(true)
+      mockEventBus(false)
+      const requestPermission = stubNotification('default')
+      stubServiceWorker(fakeRegistration({ getSubscription: vi.fn().mockResolvedValue(null) }))
+
+      const { result } = await renderHook(() => usePushNotifications(), { wrapper })
+
+      await expect.poll(() => result.current.state).toBe('default')
+      expect(requestPermission).not.toHaveBeenCalled()
+    })
+
+    it('does not auto-request when an existing subscription is already present', async () => {
+      mockAuth(true)
+      mockEventBus(true)
+      const requestPermission = stubNotification('granted')
+      stubServiceWorker(fakeRegistration({ getSubscription: vi.fn().mockResolvedValue(fakeSubscription()) }))
+
+      const { result } = await renderHook(() => usePushNotifications(), { wrapper })
+
+      await expect.poll(() => result.current.state).toBe('enabled')
+      expect(requestPermission).not.toHaveBeenCalled()
+    })
+
+    it('does not auto-request when permission was previously denied', async () => {
+      mockAuth(true)
+      mockEventBus(true)
+      const requestPermission = stubNotification('denied')
+      stubServiceWorker(fakeRegistration())
+
+      const { result } = await renderHook(() => usePushNotifications(), { wrapper })
+
+      await expect.poll(() => result.current.state).toBe('denied')
+      expect(requestPermission).not.toHaveBeenCalled()
+    })
   })
 })

@@ -14,6 +14,13 @@ vi.mock('./hooks/useEventBus', () => ({
   useEventBus: vi.fn(),
 }))
 
+// usePushNotifications touches real browser Notification/serviceWorker APIs
+// (see its own test file for that); App's tests aren't concerned with push
+// notification behavior, so stub it out entirely here.
+vi.mock('./hooks/usePushNotifications', () => ({
+  usePushNotifications: vi.fn(() => ({ state: 'default', enable: vi.fn(), disable: vi.fn() })),
+}))
+
 const mockedUseAuth = vi.mocked(useAuth)
 const mockedUseEventBus = vi.mocked(useEventBus)
 
@@ -41,6 +48,7 @@ function mockEventBus() {
     disconnect: vi.fn(),
     publish: vi.fn(),
     subscribe: vi.fn().mockReturnValue(vi.fn()),
+    isConnected: true
   }
   mockedUseEventBus.mockReturnValue(bus)
   return bus
