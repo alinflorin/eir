@@ -5,7 +5,7 @@ function About() {
   const { t } = useTranslation()
   return (
     <>
-      <Title1>{t('pages.about.title')}</Title1><br />
+      <Title1 as="h1">{t('pages.about.title')}</Title1><br />
       <Body1 as="p">{t('pages.about.body')}</Body1>
     </>
   )

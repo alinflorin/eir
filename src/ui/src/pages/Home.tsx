@@ -5,7 +5,7 @@ function Home() {
   const { t } = useTranslation()
   return (
     <>
-      <Title1>{t('pages.home.title')}</Title1><br />
+      <Title1 as="h1">{t('pages.home.title')}</Title1><br />
       <Body1 as="p">{t('pages.home.body')}</Body1>
     </>
   )
