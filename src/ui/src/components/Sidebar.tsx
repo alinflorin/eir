@@ -58,7 +58,11 @@ const useStyles = makeStyles({
   },
 })
 
-function NavLinks() {
+type NavLinksProps = {
+  onNavigate?: () => void
+}
+
+function NavLinks({ onNavigate }: NavLinksProps) {
   const styles = useStyles()
   const location = useLocation()
   const { t } = useTranslation()
@@ -71,6 +75,7 @@ function NavLinks() {
           <Link
             key={to}
             to={to}
+            onClick={onNavigate}
             className={`${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
           >
             {isActive ? <ActiveIcon /> : <Icon />}
@@ -100,7 +105,7 @@ function Sidebar({ isMobile, open, onOpenChange }: SidebarProps) {
         position="start"
       >
         <DrawerBody className={styles.drawerBody}>
-          <NavLinks />
+          <NavLinks onNavigate={() => onOpenChange(false)} />
         </DrawerBody>
       </OverlayDrawer>
     )
