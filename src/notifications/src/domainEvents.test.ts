@@ -1,4 +1,10 @@
 import { describe, expect, it } from 'vitest'
+import { AllNotificationsMarkedAsRead } from '../../domain/all-notifications-marked-as-read.js'
+import { AllNotificationsMarkedAsReadRequested } from '../../domain/all-notifications-marked-as-read-requested.js'
+import { NotificationListFetched } from '../../domain/notification-list-fetched.js'
+import { NotificationListRequested } from '../../domain/notification-list-requested.js'
+import { NotificationMarkAsReadRequested } from '../../domain/notification-mark-as-read-requested.js'
+import { NotificationMarkedAsRead } from '../../domain/notification-marked-as-read.js'
 import { NotificationProcessed } from '../../domain/notification-processed.js'
 import { NotificationRequested } from '../../domain/notification-requested.js'
 import { PushSubscriptionAddRequested } from '../../domain/push-subscription-add-requested.js'
@@ -60,5 +66,31 @@ describe('domain events', () => {
 
   it('PushSubscriptionDeleted assigns endpoint', () => {
     expect(new PushSubscriptionDeleted('https://push.example.com/a').endpoint).toBe('https://push.example.com/a')
+  })
+
+  it('NotificationListRequested assigns page and pageSize', () => {
+    const event = new NotificationListRequested(2, 20)
+
+    expect(event).toMatchObject({ page: 2, pageSize: 20 })
+  })
+
+  it('NotificationListFetched assigns notifications, page, pageSize, totalCount and unreadCount', () => {
+    const notifications = [{ id: 'abc', title: 'Hi', body: 'body', date: '2026-01-01T00:00:00.000Z', isRead: false }]
+    const event = new NotificationListFetched(notifications, 1, 20, 5, 2)
+
+    expect(event).toMatchObject({ notifications, page: 1, pageSize: 20, totalCount: 5, unreadCount: 2 })
+  })
+
+  it('NotificationMarkAsReadRequested assigns notificationId', () => {
+    expect(new NotificationMarkAsReadRequested('abc123').notificationId).toBe('abc123')
+  })
+
+  it('NotificationMarkedAsRead assigns notificationId', () => {
+    expect(new NotificationMarkedAsRead('abc123').notificationId).toBe('abc123')
+  })
+
+  it('AllNotificationsMarkedAsReadRequested and AllNotificationsMarkedAsRead carry no fields', () => {
+    expect(new AllNotificationsMarkedAsReadRequested()).toMatchObject({})
+    expect(new AllNotificationsMarkedAsRead()).toMatchObject({})
   })
 })

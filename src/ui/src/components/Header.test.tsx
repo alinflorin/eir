@@ -44,4 +44,16 @@ describe('Header', () => {
 
     await expect.element(screen.getByText('Eir')).toBeVisible()
   })
+
+  it('shows the notification bell only when authenticated', async () => {
+    const screen = await renderHeader({ isAuthenticated: false })
+
+    await expect.element(screen.getByRole('button', { name: /Notifications/ })).not.toBeInTheDocument()
+  })
+
+  it('shows the notification bell when authenticated', async () => {
+    const screen = await renderHeader({ isAuthenticated: true })
+
+    await expect.element(screen.getByRole('button', { name: /Notifications/ })).toBeVisible()
+  })
 })

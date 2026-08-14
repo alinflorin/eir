@@ -42,6 +42,7 @@ export interface EventBus {
   disconnect: () => void
   publish: <T extends object>(payload: T) => void
   subscribe: <T extends object>(type: new (...args: never[]) => T, onMessage: (payload: T) => void) => () => void
+  isConnected: boolean
 }
 
 export function useEventBus(): EventBus {
@@ -122,5 +123,5 @@ export function useEventBus(): EventBus {
     [client, username],
   )
 
-  return { connect, disconnect, publish, subscribe }
+  return { connect, disconnect, publish, subscribe, isConnected: client !== null && username !== null }
 }

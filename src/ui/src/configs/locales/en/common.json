@@ -14,6 +14,15 @@
     "login": "Login",
     "logout": "Logout"
   },
+  "notifications": {
+    "bell": {
+      "label": "Notifications ({{count}} unread)"
+    },
+    "title": "Notifications",
+    "empty": "You have no notifications yet.",
+    "markAllAsRead": "Mark all as read",
+    "loadMore": "Load more"
+  },
   "nav": {
     "home": "Home",
     "contact": "Contact",

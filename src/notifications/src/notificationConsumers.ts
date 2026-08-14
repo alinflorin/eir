@@ -3,6 +3,7 @@ import { NotificationProcessed, type NotificationResult } from '../../domain/not
 import { NotificationRequested, type NotificationType } from '../../domain/notification-requested.js'
 import { consumeAny, onConnect, publish } from './eventBus.js'
 import { sendMail } from './mailer.js'
+import { saveNotification } from './notificationService.js'
 import { sendPushNotification } from './pushNotificationService.js'
 
 /**
@@ -25,6 +26,7 @@ export function startNotificationConsumers(): void {
 
 async function handleNotificationRequested(request: NotificationRequested, callerService: string): Promise<void> {
   try {
+    await saveNotification(request.userName, request.title, request.body, request.link)
     const results = await Promise.all(request.notificationTypes.map((type) => deliver(type, request)))
     publish(new NotificationProcessed(request.userName, request.title, results), { service: callerService })
   } catch (err) {

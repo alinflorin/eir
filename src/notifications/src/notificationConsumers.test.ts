@@ -8,10 +8,12 @@ const consumeAny = vi.fn()
 const publish = vi.fn()
 const sendMail = vi.fn()
 const sendPushNotification = vi.fn()
+const saveNotification = vi.fn()
 
 vi.mock('./eventBus.js', () => ({ onConnect, consumeAny, publish }))
 vi.mock('./mailer.js', () => ({ sendMail }))
 vi.mock('./pushNotificationService.js', () => ({ sendPushNotification }))
+vi.mock('./notificationService.js', () => ({ saveNotification }))
 
 const { startNotificationConsumers } = await import('./notificationConsumers.js')
 
@@ -35,6 +37,7 @@ describe('notificationConsumers', () => {
     publish.mockReset()
     sendMail.mockReset().mockResolvedValue(undefined)
     sendPushNotification.mockReset().mockResolvedValue(undefined)
+    saveNotification.mockReset().mockResolvedValue(undefined)
   })
 
   it('registers the NotificationRequested consumer scoped to services', () => {
@@ -42,6 +45,25 @@ describe('notificationConsumers', () => {
     startNotificationConsumers()
 
     expect(consumeAny).toHaveBeenCalledWith(NotificationRequested, 'services', expect.any(Function))
+  })
+
+  it('stores the notification as unread before delivering it through any channel', async () => {
+    const request = new NotificationRequested('alice@example.com', 'Hi', 'body', ['push', 'email'], 'https://eir.localhost')
+
+    await invoke(request, 'billing')
+
+    expect(saveNotification).toHaveBeenCalledWith('alice@example.com', 'Hi', 'body', 'https://eir.localhost')
+  })
+
+  it('publishes ExceptionOccurred to the caller and skips delivery if storing the notification fails', async () => {
+    saveNotification.mockRejectedValue(new Error('mongo is down'))
+    const request = new NotificationRequested('alice@example.com', 'Hi', 'body', ['push', 'email'])
+
+    await invoke(request, 'billing')
+
+    expect(sendPushNotification).not.toHaveBeenCalled()
+    expect(sendMail).not.toHaveBeenCalled()
+    expect(publish).toHaveBeenCalledWith(new ExceptionOccurred('mongo is down'), { service: 'billing' })
   })
 
   it('delivers push and email, then publishes NotificationProcessed with both results back to the caller', async () => {

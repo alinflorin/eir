@@ -1,5 +1,6 @@
 import { Hamburger, Text, makeStyles, tokens } from '@fluentui/react-components'
 import { Sparkle24Filled } from '@fluentui/react-icons'
+import NotificationBell from './NotificationBell'
 import UserMenu from './UserMenu'
 import type { ThemePreference } from '../hooks/useThemePreference'
 
@@ -65,6 +66,7 @@ function Header({
         <Text className={styles.logoText}>Eir</Text>
       </div>
       <div className={styles.spacer} />
+      {isAuthenticated && <NotificationBell />}
       <UserMenu
         isLoading={isAuthLoading}
         isAuthenticated={isAuthenticated}

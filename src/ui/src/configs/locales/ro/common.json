@@ -14,6 +14,15 @@
     "login": "Autentificare",
     "logout": "Deconectare"
   },
+  "notifications": {
+    "bell": {
+      "label": "Notificări ({{count}} necitite)"
+    },
+    "title": "Notificări",
+    "empty": "Nu ai nicio notificare încă.",
+    "markAllAsRead": "Marchează toate ca citite",
+    "loadMore": "Încarcă mai multe"
+  },
   "nav": {
     "home": "Acasă",
     "contact": "Contact",
