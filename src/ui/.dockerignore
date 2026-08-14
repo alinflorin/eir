@@ -3,3 +3,7 @@ dist
 dist-ssr
 *.local
 .git
+
+# Vitest
+__screenshots__
+coverage

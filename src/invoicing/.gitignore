@@ -12,6 +12,9 @@ dist
 *.local
 *.tsbuildinfo
 
+# Vitest
+coverage
+
 # Environment variables
 .env
 .env.*
