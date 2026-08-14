@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { AllNotificationsMarkedAsRead } from '../../domain/all-notifications-marked-as-read.js'
 import { AllNotificationsMarkedAsReadRequested } from '../../domain/all-notifications-marked-as-read-requested.js'
+import { NotificationAdded } from '../../domain/notification-added.js'
 import { NotificationListFetched } from '../../domain/notification-list-fetched.js'
 import { NotificationListRequested } from '../../domain/notification-list-requested.js'
 import { NotificationMarkAsReadRequested } from '../../domain/notification-mark-as-read-requested.js'
@@ -92,5 +93,12 @@ describe('domain events', () => {
   it('AllNotificationsMarkedAsReadRequested and AllNotificationsMarkedAsRead carry no fields', () => {
     expect(new AllNotificationsMarkedAsReadRequested()).toMatchObject({})
     expect(new AllNotificationsMarkedAsRead()).toMatchObject({})
+  })
+
+  it('NotificationAdded assigns the notification', () => {
+    const notification = { id: 'abc', title: 'Hi', body: 'body', date: '2026-01-01T00:00:00.000Z', isRead: false }
+    const event = new NotificationAdded(notification)
+
+    expect(event.notification).toBe(notification)
   })
 })

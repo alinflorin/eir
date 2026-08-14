@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ExceptionOccurred } from '../../domain/exception-occurred.js'
+import { NotificationAdded } from '../../domain/notification-added.js'
 import { NotificationProcessed } from '../../domain/notification-processed.js'
 import { NotificationRequested } from '../../domain/notification-requested.js'
 
@@ -21,6 +22,11 @@ function flush(): Promise<void> {
   return new Promise((resolve) => setImmediate(resolve))
 }
 
+function fakeStoredNotification(overrides: Partial<{ id: string; title: string; body: string; link?: string; date: Date }> = {}) {
+  const { id = 'abc123', title = 'Hi', body = 'body', link, date = new Date('2026-01-01T00:00:00.000Z') } = overrides
+  return { _id: { toString: () => id }, userName: 'alice@example.com', title, body, link, date, isRead: false, readDate: null }
+}
+
 async function invoke(request: NotificationRequested, callerService: string): Promise<void> {
   onConnect.mockImplementation((listener: () => void) => listener())
   startNotificationConsumers()
@@ -37,7 +43,7 @@ describe('notificationConsumers', () => {
     publish.mockReset()
     sendMail.mockReset().mockResolvedValue(undefined)
     sendPushNotification.mockReset().mockResolvedValue(undefined)
-    saveNotification.mockReset().mockResolvedValue(undefined)
+    saveNotification.mockReset().mockResolvedValue(fakeStoredNotification())
   })
 
   it('registers the NotificationRequested consumer scoped to services', () => {
@@ -63,7 +69,28 @@ describe('notificationConsumers', () => {
 
     expect(sendPushNotification).not.toHaveBeenCalled()
     expect(sendMail).not.toHaveBeenCalled()
+    expect(publish).not.toHaveBeenCalledWith(expect.any(NotificationAdded), expect.anything())
     expect(publish).toHaveBeenCalledWith(new ExceptionOccurred('mongo is down'), { service: 'billing' })
+  })
+
+  it('publishes NotificationAdded to the target user with the stored notification, alongside delivery', async () => {
+    saveNotification.mockResolvedValue(fakeStoredNotification({ id: 'abc123', link: 'https://eir.localhost' }))
+    const request = new NotificationRequested('alice@example.com', 'Hi', 'body', ['email'], 'https://eir.localhost')
+
+    await invoke(request, 'billing')
+
+    expect(publish).toHaveBeenCalledWith(
+      new NotificationAdded({
+        id: 'abc123',
+        title: 'Hi',
+        body: 'body',
+        link: 'https://eir.localhost',
+        date: '2026-01-01T00:00:00.000Z',
+        isRead: false,
+        readDate: undefined,
+      }),
+      { user: 'alice@example.com' },
+    )
   })
 
   it('delivers push and email, then publishes NotificationProcessed with both results back to the caller', async () => {

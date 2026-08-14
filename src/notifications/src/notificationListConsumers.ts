@@ -1,13 +1,13 @@
 import { AllNotificationsMarkedAsRead } from '../../domain/all-notifications-marked-as-read.js'
 import { AllNotificationsMarkedAsReadRequested } from '../../domain/all-notifications-marked-as-read-requested.js'
 import { ExceptionOccurred } from '../../domain/exception-occurred.js'
-import { NotificationListFetched, type NotificationDto } from '../../domain/notification-list-fetched.js'
+import { NotificationListFetched } from '../../domain/notification-list-fetched.js'
 import { NotificationListRequested } from '../../domain/notification-list-requested.js'
 import { NotificationMarkAsReadRequested } from '../../domain/notification-mark-as-read-requested.js'
 import { NotificationMarkedAsRead } from '../../domain/notification-marked-as-read.js'
 import { consumeAny, onConnect, publish } from './eventBus.js'
 import { getNotifications, markAllAsRead, markAsRead } from './notificationService.js'
-import type { NotificationDocument } from './notification.js'
+import { toNotificationDto } from './notification.js'
 
 const MAX_PAGE_SIZE = 100
 
@@ -41,7 +41,7 @@ async function handleListRequested(request: NotificationListRequested, user: str
     const page = Math.max(request.page, 1)
     const pageSize = Math.min(Math.max(request.pageSize, 1), MAX_PAGE_SIZE)
     const { notifications, totalCount, unreadCount } = await getNotifications(user, page, pageSize)
-    publish(new NotificationListFetched(notifications.map(toDto), page, pageSize, totalCount, unreadCount), { user })
+    publish(new NotificationListFetched(notifications.map(toNotificationDto), page, pageSize, totalCount, unreadCount), { user })
   } catch (err) {
     reportException('failed to fetch notifications', err, user)
   }
@@ -62,18 +62,6 @@ async function handleAllMarkedAsReadRequested(user: string): Promise<void> {
     publish(new AllNotificationsMarkedAsRead(), { user })
   } catch (err) {
     reportException('failed to mark all notifications as read', err, user)
-  }
-}
-
-function toDto(doc: NotificationDocument): NotificationDto {
-  return {
-    id: doc._id!.toString(),
-    title: doc.title,
-    body: doc.body,
-    link: doc.link,
-    date: doc.date.toISOString(),
-    isRead: doc.isRead,
-    readDate: doc.readDate?.toISOString(),
   }
 }
 

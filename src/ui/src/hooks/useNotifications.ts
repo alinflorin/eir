@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { AllNotificationsMarkedAsRead } from '../../../domain/all-notifications-marked-as-read'
 import { AllNotificationsMarkedAsReadRequested } from '../../../domain/all-notifications-marked-as-read-requested'
+import { NotificationAdded } from '../../../domain/notification-added'
 import { NotificationListFetched, type NotificationDto } from '../../../domain/notification-list-fetched'
 import { NotificationListRequested } from '../../../domain/notification-list-requested'
 import { NotificationMarkAsReadRequested } from '../../../domain/notification-mark-as-read-requested'
@@ -34,7 +35,10 @@ export function useNotifications(): UseNotificationsResult {
   const [unreadCount, setUnreadCount] = useState(0)
   const [totalCount, setTotalCount] = useState(0)
   const [page, setPage] = useState(0)
-  const [isLoading, setIsLoading] = useState(false)
+  // Assumed true until the first NotificationListFetched arrives, so the
+  // bell shows a spinner rather than a misleading empty state while the
+  // event bus is still connecting.
+  const [isLoading, setIsLoading] = useState(true)
 
   const fetchPage = useCallback(
     (pageToFetch: number) => {
@@ -44,9 +48,12 @@ export function useNotifications(): UseNotificationsResult {
     [publish],
   )
 
+  // Fetches the first page as soon as the event bus (re)connects. Publishes
+  // directly (rather than through fetchPage) so this effect only talks to
+  // the external event bus and never sets state itself.
   useEffect(() => {
-    if (isConnected) fetchPage(1)
-  }, [isConnected, fetchPage])
+    if (isConnected) publish(new NotificationListRequested(1, PAGE_SIZE))
+  }, [isConnected, publish])
 
   useEffect(() => {
     return subscribe(NotificationListFetched, (event) => {
@@ -55,6 +62,17 @@ export function useNotifications(): UseNotificationsResult {
       setTotalCount(event.totalCount)
       setPage(event.page)
       setIsLoading(false)
+    })
+  }, [subscribe])
+
+  // A NotificationRequested targeting this user was just processed by the
+  // notifications service: splice it straight into the list rather than
+  // waiting for the next NotificationListRequested poll.
+  useEffect(() => {
+    return subscribe(NotificationAdded, (event) => {
+      setNotifications((prev) => [event.notification, ...prev])
+      setUnreadCount((prev) => prev + (event.notification.isRead ? 0 : 1))
+      setTotalCount((prev) => prev + 1)
     })
   }, [subscribe])
 

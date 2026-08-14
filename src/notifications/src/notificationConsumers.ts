@@ -1,8 +1,10 @@
 import { ExceptionOccurred } from '../../domain/exception-occurred.js'
+import { NotificationAdded } from '../../domain/notification-added.js'
 import { NotificationProcessed, type NotificationResult } from '../../domain/notification-processed.js'
 import { NotificationRequested, type NotificationType } from '../../domain/notification-requested.js'
 import { consumeAny, onConnect, publish } from './eventBus.js'
 import { sendMail } from './mailer.js'
+import { toNotificationDto } from './notification.js'
 import { saveNotification } from './notificationService.js'
 import { sendPushNotification } from './pushNotificationService.js'
 
@@ -26,7 +28,8 @@ export function startNotificationConsumers(): void {
 
 async function handleNotificationRequested(request: NotificationRequested, callerService: string): Promise<void> {
   try {
-    await saveNotification(request.userName, request.title, request.body, request.link)
+    const stored = await saveNotification(request.userName, request.title, request.body, request.link)
+    publish(new NotificationAdded(toNotificationDto(stored)), { user: request.userName })
     const results = await Promise.all(request.notificationTypes.map((type) => deliver(type, request)))
     publish(new NotificationProcessed(request.userName, request.title, results), { service: callerService })
   } catch (err) {
