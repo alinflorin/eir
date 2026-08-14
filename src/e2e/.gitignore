@@ -1,0 +1,10 @@
+node_modules
+dist
+.env
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# Saved login session(s) from tests/auth.setup.ts — contain live tokens.
+/playwright/.auth/*.json

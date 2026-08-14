@@ -15,6 +15,7 @@ on:
       - 'src/domain/**'
       - '.github/workflows/ci-invoicing.yml'
       - '.github/workflows/ci-template.yml'
+  workflow_dispatch:
 
 concurrency:
   group: ci-invoicing-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}

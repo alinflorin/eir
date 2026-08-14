@@ -15,6 +15,7 @@ on:
       - 'src/domain/**'
       - '.github/workflows/ci-ui.yml'
       - '.github/workflows/ci-template.yml'
+  workflow_dispatch:
 
 concurrency:
   group: ci-ui-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}

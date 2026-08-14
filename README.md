@@ -17,3 +17,8 @@ choco install mkcert   # or: scoop install mkcert
 ```
 
 Either script installs a local mkcert CA (via `mkcert -install`, prompts for admin/password), writes certs for `eir.localhost`, `dex.localhost`, and `rabbitmq.localhost` to `./certs/` (gitignored), and adds those hostnames to `/etc/hosts` pointing at `127.0.0.1` (prompts for sudo) so browsers can resolve them.
+
+## Testing
+
+- Component tests live alongside each app (e.g. `src/ui`, run via `npm test` there — Vitest in browser mode).
+- End-to-end tests live in [`src/e2e`](src/e2e/README.md) (Playwright), driving the whole stack through a real browser against `https://eir.localhost`.
