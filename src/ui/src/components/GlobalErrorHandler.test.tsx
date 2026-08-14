@@ -18,6 +18,7 @@ function mockSubscribe() {
     disconnect: vi.fn(),
     publish: vi.fn(),
     subscribe,
+    isConnected: true,
   })
   return { subscribe, unsubscribe }
 }
