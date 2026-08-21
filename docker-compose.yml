@@ -61,6 +61,9 @@ services:
 
   rabbitmq:
     image: rabbitmq:4.3.4-alpine
+    command: ["sh", "-c", "sed \"s|\\$$OAUTH_PROVIDER_URL|$$OAUTH_PROVIDER_URL|\" /etc/rabbitmq/rabbitmq.conf.template > /etc/rabbitmq/rabbitmq.conf && docker-entrypoint.sh rabbitmq-server"]
+    environment:
+      - OAUTH_PROVIDER_URL=${OAUTH_PROVIDER_URL}
     ports:
       - "5672:5672"
       - "5671:5671"
@@ -70,7 +73,7 @@ services:
       - dex
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf.template:ro
       - ./rabbitmq-enabled-plugins:/etc/rabbitmq/enabled_plugins:ro
       - ./rabbitmq-definitions.json:/etc/rabbitmq/definitions.json:ro
       - ./certs:/certs:ro
