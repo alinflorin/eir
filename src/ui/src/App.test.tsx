@@ -96,14 +96,16 @@ describe('App', () => {
     await expect.element(screen.getByText('Loading…')).toBeVisible()
   })
 
-  it('shows an error message when auth fails', async () => {
+  it('shows a toast and redirects to login when auth fails', async () => {
     const e: ErrorContext = {message: 'boom', name: 'boom', source: 'signinSilent', args: undefined};
-    mockAuth({ error: e })
+    const auth = mockAuth({ error: e })
     mockEventBus()
 
-    const screen = await renderApp()
+    const screen = await renderApp(['/contact'])
 
     await expect.element(screen.getByText('Authentication error: boom')).toBeVisible()
+    await expect.poll(() => auth.signinRedirect.mock.calls.length).toBe(1)
+    expect(auth.signinRedirect).toHaveBeenCalledWith({ state: { returnTo: '/contact' } })
   })
 
   it('renders the app shell and routed page once ready', async () => {

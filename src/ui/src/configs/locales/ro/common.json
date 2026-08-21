@@ -33,7 +33,8 @@
     "signingIn": "Te autentificăm…",
     "signingOut": "Te deconectăm…",
     "loading": "Se încarcă…",
-    "authError": "Eroare de autentificare: {{message}}"
+    "authError": "Eroare de autentificare: {{message}}",
+    "authErrorTitle": "Sesiune expirată"
   },
   "confirm": {
     "defaultTitle": "Te rugăm să confirmi",

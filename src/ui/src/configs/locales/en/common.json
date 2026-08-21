@@ -33,7 +33,8 @@
     "signingIn": "Signing you in…",
     "signingOut": "Signing you out…",
     "loading": "Loading…",
-    "authError": "Authentication error: {{message}}"
+    "authError": "Authentication error: {{message}}",
+    "authErrorTitle": "Session expired"
   },
   "confirm": {
     "defaultTitle": "Please confirm",

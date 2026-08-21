@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Route, Routes, useLocation, useNavigate } from 'react-router'
 import { useAuth } from 'react-oidc-context'
 import { useTranslation } from 'react-i18next'
@@ -6,7 +6,7 @@ import { FluentProvider, Spinner, Text, makeStyles, tokens, webDarkTheme, webLig
 import { useIsMobile } from './hooks/useIsMobile'
 import { useThemePreference } from './hooks/useThemePreference'
 import { useEventBus } from './hooks/useEventBus'
-import { ToastProvider } from './hooks/useToast'
+import { ToastProvider, useToast } from './hooks/useToast'
 import { ConfirmProvider } from './hooks/useConfirm'
 import { useServiceWorkerUpdate } from './hooks/useServiceWorkerUpdate'
 import { usePushNotifications } from './hooks/usePushNotifications'
@@ -106,9 +106,6 @@ function App() {
     })
   }, [auth.events, auth.signinSilent, auth.activeNavigator, auth])
 
-
-  
-
   const handleLoginClick = () => {
     void auth.signinRedirect({ state: { returnTo: location.pathname + location.search } })
   }
@@ -118,83 +115,95 @@ function App() {
     navigate('/')
   }
 
+  let body: ReactNode
   if (auth.activeNavigator === 'signinSilent' || auth.activeNavigator === 'signoutRedirect') {
-    return (
-      <FluentProvider theme={theme}>
-        <div className={styles.centered}>
-          <Spinner />
-          <Text>{auth.activeNavigator === 'signinSilent' ? t('app.signingIn') : t('app.signingOut')}</Text>
-        </div>
-      </FluentProvider>
+    body = (
+      <div className={styles.centered}>
+        <Spinner />
+        <Text>{auth.activeNavigator === 'signinSilent' ? t('app.signingIn') : t('app.signingOut')}</Text>
+      </div>
     )
-  }
-
-  if (auth.isLoading) {
-    return (
-      <FluentProvider theme={theme}>
-        <div className={styles.centered}>
-          <Spinner label={t('app.loading')} />
-        </div>
-      </FluentProvider>
+  } else if (auth.isLoading) {
+    body = (
+      <div className={styles.centered}>
+        <Spinner label={t('app.loading')} />
+      </div>
     )
-  }
+  } else if (auth.error) {
+    body = <AuthErrorRedirect error={auth.error} onLoginClick={handleLoginClick} />
+  } else {
+    body = (
+      <ConfirmProvider>
+        <ServiceWorkerUpdater />
+        <PushNotificationRequester />
+        <div className={styles.root}>
+          <Header
+            isMobile={isMobile}
+            onToggleDrawer={() => setDrawerOpen((open) => !open)}
+            isAuthLoading={auth.isLoading}
+            isAuthenticated={auth.isAuthenticated}
+            name={auth.user?.profile.name}
+            email={auth.user?.profile.email}
+            themePreference={preference}
+            onThemePreferenceChange={setPreference}
+            onLoginClick={handleLoginClick}
+            onLogoutClick={handleLogoutClick}
+          />
 
-  if (auth.error) {
-    return (
-      <FluentProvider theme={theme}>
-        <div className={styles.centered}>
-          <Text>{t('app.authError', { message: auth.error.message })}</Text>
+          <div className={styles.body}>
+            <Sidebar isMobile={isMobile} open={drawerOpen} onOpenChange={setDrawerOpen} />
+
+            <main className={styles.main}>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/about" element={<About />} />
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute>
+                      <Settings />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </main>
+          </div>
         </div>
-      </FluentProvider>
+
+        <GlobalErrorHandler />
+      </ConfirmProvider>
     )
   }
 
   return (
     <FluentProvider theme={theme}>
-      <ToastProvider>
-        <ConfirmProvider>
-          <ServiceWorkerUpdater />
-          <PushNotificationRequester />
-          <div className={styles.root}>
-            <Header
-              isMobile={isMobile}
-              onToggleDrawer={() => setDrawerOpen((open) => !open)}
-              isAuthLoading={auth.isLoading}
-              isAuthenticated={auth.isAuthenticated}
-              name={auth.user?.profile.name}
-              email={auth.user?.profile.email}
-              themePreference={preference}
-              onThemePreferenceChange={setPreference}
-              onLoginClick={handleLoginClick}
-              onLogoutClick={handleLogoutClick}
-            />
-
-            <div className={styles.body}>
-              <Sidebar isMobile={isMobile} open={drawerOpen} onOpenChange={setDrawerOpen} />
-
-              <main className={styles.main}>
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/about" element={<About />} />
-                  <Route
-                    path="/settings"
-                    element={
-                      <ProtectedRoute>
-                        <Settings />
-                      </ProtectedRoute>
-                    }
-                  />
-                </Routes>
-              </main>
-            </div>
-          </div>
-
-          <GlobalErrorHandler />
-        </ConfirmProvider>
-      </ToastProvider>
+      <ToastProvider>{body}</ToastProvider>
     </FluentProvider>
   )
+}
+
+// Auto-triggers a re-login redirect when session/auth errors occur (e.g. an
+// expired or invalid session), surfacing the error via a toast rather than a
+// dead-end error screen. Rendered inside ToastProvider so it can use useToast.
+function AuthErrorRedirect({ error, onLoginClick }: { error: Error; onLoginClick: () => void }) {
+  const { t } = useTranslation()
+  const toast = useToast()
+
+  useEffect(() => {
+    // Deferred a tick: on first mount the Toaster registers itself with
+    // useToastController in its own effect, which runs after this one (it's
+    // a later sibling in the tree) — dispatching synchronously here would
+    // lose the race and drop the toast.
+    const timer = setTimeout(() => {
+      toast(t('app.authError', { message: error.message }), 'error', t('app.authErrorTitle'))
+    }, 0)
+    onLoginClick()
+    return () => clearTimeout(timer)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error])
+
+  return null
 }
 
 export default App
