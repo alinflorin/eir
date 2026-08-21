@@ -5,12 +5,11 @@ let transporter: Transporter | undefined
 
 function getTransporter(): Transporter {
   if (!transporter) {
-    const { smtpHost, smtpPort, smtpUser, smtpPassword } = getConfig()
+    const { smtpHost, smtpPort, smtpSecure, smtpUser, smtpPassword } = getConfig()
     transporter = nodemailer.createTransport({
       host: smtpHost,
       port: smtpPort,
-      // The dummy dev SMTP server speaks plaintext, not TLS.
-      secure: false,
+      secure: smtpSecure,
       auth: smtpUser && smtpPassword ? { user: smtpUser, pass: smtpPassword } : undefined,
     })
   }

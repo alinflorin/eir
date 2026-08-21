@@ -42,6 +42,17 @@ describe('mailer', () => {
     delete process.env.SMTP_PASSWORD
   })
 
+  it('enables TLS when SMTP_SECURE is set', async () => {
+    process.env.SMTP_SECURE = 'true'
+    const { configure, sendMail } = await freshMailer()
+    configure('notifications')
+
+    await sendMail('someone@example.com', 'Hello', '<p>Hi</p>')
+
+    expect(createTransport).toHaveBeenCalledWith(expect.objectContaining({ secure: true }))
+    delete process.env.SMTP_SECURE
+  })
+
   it('omits auth when no smtp credentials are configured', async () => {
     delete process.env.SMTP_USER
     delete process.env.SMTP_PASSWORD

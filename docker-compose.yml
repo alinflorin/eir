@@ -19,8 +19,14 @@ services:
     command: sh -c "npm install && npm run dev"
     environment:
       - CLIENT_SECRET=${NOTIFICATIONS_CLIENT_SECRET}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_SECURE=${SMTP_SECURE}
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - MONGO_HOST=${MONGO_HOST}
+      - MONGO_PORT=${MONGO_PORT}
+      - MONGO_USER=${MONGO_USER}
       - MONGO_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
       - VAPID_SUBJECT=${VAPID_SUBJECT}
       - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
@@ -37,7 +43,7 @@ services:
   mongodb:
     image: mongo:8.3.7-noble
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
     ports:
       - "27017:27017"

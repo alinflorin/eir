@@ -16,6 +16,7 @@ export interface Config {
   mongoUrl: string
   smtpHost: string
   smtpPort: number
+  smtpSecure: boolean
   smtpUser: string | undefined
   smtpPassword: string | undefined
   fromAddress: string
@@ -36,9 +37,13 @@ export function configure(serviceName: string): void {
     tokenUrl: process.env.DEX_TOKEN_URL ?? 'http://dex:5556/token',
     clientSecret: process.env[`CLIENT_SECRET`],
     rabbitmqUrl: process.env.RABBITMQ_URL ?? 'amqp://rabbitmq:5672',
-    mongoUrl: process.env.MONGO_URL ?? `mongodb://root:${process.env.MONGO_ROOT_PASSWORD}@mongodb:27017`,
+    mongoUrl:
+      process.env.MONGO_URL ??
+      `mongodb://${process.env.MONGO_USER ?? 'root'}:${process.env.MONGO_ROOT_PASSWORD}@${process.env.MONGO_HOST ?? 'mongodb'}:${process.env.MONGO_PORT ?? 27017}`,
     smtpHost: process.env.SMTP_HOST ?? 'smtp',
     smtpPort: Number(process.env.SMTP_PORT ?? 1025),
+    // The dummy dev SMTP server speaks plaintext, not TLS.
+    smtpSecure: process.env.SMTP_SECURE === 'true',
     smtpUser: process.env.SMTP_USER,
     smtpPassword: process.env.SMTP_PASSWORD,
     fromAddress: process.env.FROM_ADDRESS ?? 'notifications@eir.localhost',
