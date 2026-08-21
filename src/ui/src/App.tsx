@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Route, Routes, useLocation, useNavigate } from 'react-router'
 import { useAuth } from 'react-oidc-context'
 import { useTranslation } from 'react-i18next'
+import { toDexLocale } from './configs/authConfig'
 import { FluentProvider, Spinner, Text, makeStyles, tokens, webDarkTheme, webLightTheme } from '@fluentui/react-components'
 import { useIsMobile } from './hooks/useIsMobile'
 import { useThemePreference } from './hooks/useThemePreference'
@@ -66,7 +67,7 @@ const useStyles = makeStyles({
 
 function App() {
   const styles = useStyles()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const isMobile = useIsMobile()
   const { preference, setPreference, isDark } = useThemePreference()
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -107,7 +108,10 @@ function App() {
   }, [auth.events, auth.signinSilent, auth.activeNavigator, auth])
 
   const handleLoginClick = () => {
-    void auth.signinRedirect({ state: { returnTo: location.pathname + location.search } })
+    void auth.signinRedirect({
+      state: { returnTo: location.pathname + location.search },
+      extraQueryParams: { ui_locales: toDexLocale(i18n.language) },
+    })
   }
 
   const handleLogoutClick = () => {

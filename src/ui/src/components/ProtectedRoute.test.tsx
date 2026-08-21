@@ -43,7 +43,10 @@ describe('ProtectedRoute', () => {
 
     await expect.element(screen.getByText('Signing you in…')).toBeVisible()
     await expect.poll(() => signinRedirect.mock.calls.length).toBe(1)
-    expect(signinRedirect).toHaveBeenCalledWith({ state: { returnTo: '/settings?foo=bar' } })
+    expect(signinRedirect).toHaveBeenCalledWith({
+      state: { returnTo: '/settings?foo=bar' },
+      extraQueryParams: { ui_locales: 'en' },
+    })
   })
 
   it('does not redirect again while still loading', async () => {

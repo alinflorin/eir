@@ -105,7 +105,10 @@ describe('App', () => {
 
     await expect.element(screen.getByText('Authentication error: boom')).toBeVisible()
     await expect.poll(() => auth.signinRedirect.mock.calls.length).toBe(1)
-    expect(auth.signinRedirect).toHaveBeenCalledWith({ state: { returnTo: '/contact' } })
+    expect(auth.signinRedirect).toHaveBeenCalledWith({
+      state: { returnTo: '/contact' },
+      extraQueryParams: { ui_locales: 'en' },
+    })
   })
 
   it('renders the app shell and routed page once ready', async () => {
@@ -179,7 +182,10 @@ describe('App', () => {
     await screen.getByRole('img', { name: 'Account' }).click()
     await screen.getByRole('menuitem', { name: 'Login' }).click()
 
-    expect(auth.signinRedirect).toHaveBeenCalledWith({ state: { returnTo: '/contact' } })
+    expect(auth.signinRedirect).toHaveBeenCalledWith({
+      state: { returnTo: '/contact' },
+      extraQueryParams: { ui_locales: 'en' },
+    })
   })
 
   it('calls removeUser when logging out', async () => {
