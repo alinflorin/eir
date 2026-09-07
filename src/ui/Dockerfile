@@ -6,7 +6,7 @@
 # browser binaries need glibc, which alpine's musl libc can't run. Keep the
 # tag's Playwright version in sync with the "playwright" devDependency in
 # package.json.
-FROM mcr.microsoft.com/playwright:v1.62.1-noble AS test
+FROM mcr.microsoft.com/playwright:v1.63.0-noble AS test
 WORKDIR /app
 COPY src/ui/package.json src/ui/package-lock.json ./
 RUN npm ci
